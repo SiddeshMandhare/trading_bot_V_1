@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>AlgoMaitri - Smart Algorithms, Warm Relationships</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --am-primary: #0A1128;
+            --am-secondary: #00E5A0;
+            --am-accent: #A855F7;
+            --am-warm: #F59E0B;
+            --am-danger: #FF4757;
+            --am-bg: #0F1420;
+            --am-card: #151A2A;
+            --am-border: #2A2F45;
+            --am-border-light: #353D5A;
+            --am-text: #E8ECF2;
+            --am-text-secondary: #8A92B0;
+            --am-text-muted: #5A6380;
+        }
+
+        [data-theme="light"] {
+            --am-primary: #FFFFFF;
+            --am-bg: #F0F2F5;
+            --am-card: #FFFFFF;
+            --am-border: #E0E0E0;
+            --am-text: #1A1A2E;
+            --am-text-secondary: #666666;
+        }
+
+        body { background: var(--am-bg); color: var(--am-text); font-family: 'Inter', sans-serif; font-size: 13px; transition: all 0.3s; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--am-bg); }
+        ::-webkit-scrollbar-thumb { background: var(--am-accent); border-radius: 3px; }
+
+        .header {
+            background: var(--am-card);
+            border-bottom: 1px solid var(--am-border);
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--am-secondary), var(--am-accent)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: bold; }
+        .logo-text { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+        .logo-text span:first-child { color: var(--am-secondary); }
+        .logo-text span:last-child { color: var(--am-accent); }
+        .tagline { font-size: 0.65rem; color: var(--am-text-muted); margin-top: 2px; letter-spacing: 0.5px; }
+
+        .header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .theme-toggle, .paper-toggle {
+            background: var(--am-bg);
+            border: 1px solid var(--am-border);
+            border-radius: 30px;
+            padding: 6px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .theme-toggle:hover, .paper-toggle:hover { border-color: var(--am-secondary); }
+        .toggle-switch { position: relative; width: 46px; height: 22px; background: var(--am-bg); border-radius: 30px; transition: 0.3s; }
+        .toggle-switch.active { background: var(--am-secondary); }
+        .toggle-slider { position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 2px; left: 3px; transition: 0.3s; }
+        .toggle-switch.active .toggle-slider { left: 25px; }
+
+        .market-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: rgba(0, 229, 160, 0.1);
+            border: 1px solid var(--am-secondary);
+            color: var(--am-secondary);
+        }
+        .market-status.closed { border-color: var(--am-danger); color: var(--am-danger); background: rgba(255, 71, 87, 0.1); }
+
+        .index-bar {
+            display: flex;
+            gap: 15px;
+            padding: 15px 24px;
+            background: var(--am-card);
+            border-bottom: 1px solid var(--am-border);
+            overflow-x: auto;
+        }
+        .index-card {
+            background: var(--am-bg);
+            border: 1px solid var(--am-border);
+            border-radius: 12px;
+            padding: 10px 20px;
+            min-width: 130px;
+            transition: all 0.3s;
+        }
+        .index-card:hover { transform: translateY(-2px); border-color: var(--am-secondary); }
+        .index-name { font-size: 0.7rem; color: var(--am-text-secondary); text-transform: uppercase; }
+        .index-price { font-family: monospace; font-size: 1.1rem; font-weight: 700; margin-top: 5px; }
+        .index-change { font-size: 0.7rem; margin-top: 3px; }
+        .index-change.up { color: var(--am-secondary); }
+        .index-change.down { color: var(--am-danger); }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 20px 24px;
+        }
+        .card {
+            background: var(--am-card);
+            border: 1px solid var(--am-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: var(--am-secondary); transform: translateY(-2px); }
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--am-border);
+        }
+        .card-title { font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--am-text-secondary); }
+        .card-title i { margin-right: 8px; color: var(--am-secondary); }
+        .stat-number { font-size: 1.6rem; font-weight: 800; font-family: monospace; }
+        .stat-number.positive { color: var(--am-secondary); }
+        .stat-number.negative { color: var(--am-danger); }
+        .stat-label { font-size: 0.7rem; color: var(--am-text-muted); margin-top: 5px; }
+        .col-span-1 { grid-column: span 1; }
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
+        .col-span-4 { grid-column: span 4; }
+
+        .trade-input {
+            background: var(--am-bg);
+            border: 1px solid var(--am-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--am-text);
+            font-family: monospace;
+        }
+        .trade-input:focus { outline: none; border-color: var(--am-secondary); }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.8rem;
+        }
+        .btn-buy { background: linear-gradient(135deg, var(--am-secondary), #00b884); color: #000; }
+        .btn-sell { background: linear-gradient(135deg, var(--am-danger), #e63e4e); color: #fff; }
+        .btn-primary { background: linear-gradient(135deg, var(--am-accent), #7c3aed); color: #fff; }
+        .btn-danger { background: transparent; border: 1px solid var(--am-danger); color: var(--am-danger); }
+        .btn-sm { padding: 4px 10px; font-size: 0.7rem; }
+
+        .table-container { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.7rem; min-width: 1000px; }
+        .data-table th { text-align: center; padding: 10px 6px; background: rgba(0, 229, 160, 0.08); color: var(--am-text-secondary); position: sticky; top: 0; z-index: 10; font-weight: 600; }
+        .data-table td { text-align: center; padding: 8px 6px; border-bottom: 1px solid var(--am-border); }
+        .data-table tr:hover { background: rgba(168, 85, 247, 0.05); }
+
+        /* LTP Highlighting */
+        .ltp-positive { color: var(--am-secondary); font-weight: bold; background: rgba(0, 229, 160, 0.15); border-radius: 4px; }
+        .ltp-negative { color: var(--am-danger); font-weight: bold; background: rgba(255, 71, 87, 0.15); border-radius: 4px; }
+        .atm-row { background: rgba(168, 85, 247, 0.1); }
+        .atm-label { background: var(--am-accent); color: white; padding: 2px 6px; border-radius: 12px; font-size: 0.6rem; }
+
+        .nav-tabs {
+            display: flex;
+            gap: 5px;
+            padding: 0 24px;
+            background: var(--am-card);
+            border-bottom: 1px solid var(--am-border);
+            overflow-x: auto;
+        }
+        .nav-tab {
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: var(--am-text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .nav-tab:hover { color: var(--am-text); }
+        .nav-tab.active { color: var(--am-secondary); border-bottom: 2px solid var(--am-secondary); }
+
+        .tab-content { display: none; padding: 20px 24px; }
+        .tab-content.active { display: block; }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 0.65rem;
+            font-weight: 500;
+        }
+        .badge-green { background: rgba(0, 229, 160, 0.15); color: var(--am-secondary); }
+        .badge-red { background: rgba(255, 71, 87, 0.15); color: var(--am-danger); }
+        .badge-purple { background: rgba(168, 85, 247, 0.15); color: var(--am-accent); }
+        .badge-gold { background: rgba(245, 158, 11, 0.15); color: var(--am-warm); }
+
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .strategy-card {
+            background: var(--am-bg);
+            border: 1px solid var(--am-border);
+            border-radius: 8px;
+            padding: 10px;
+            border-left: 3px solid var(--am-secondary);
+        }
+
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 1000; }
+        .toast {
+            background: var(--am-card);
+            border: 1px solid var(--am-border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-success { border-left: 3px solid var(--am-secondary); }
+        .toast-error { border-left: 3px solid var(--am-danger); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .greeks-controls { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+        .greeks-btn {
+            background: var(--am-bg);
+            border: 1px solid var(--am-border);
+            border-radius: 6px;
+            padding: 5px 12px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: var(--am-text);
+            transition: all 0.2s;
+        }
+        .greeks-btn:hover { background: var(--am-secondary); color: #000; }
+        .greeks-btn.active { background: var(--am-accent); border-color: var(--am-accent); color: white; }
+
+        .positive { color: var(--am-secondary); }
+        .negative { color: var(--am-danger); }
+        .chart-container { height: 250px; position: relative; }
+
+        /* Full Config Styles */
+        .config-section {
+            margin-bottom: 25px;
+            border: 1px solid var(--am-border);
+            border-radius: 12px;
+            padding: 15px;
+            background: var(--am-bg);
+        }
+        .config-section h3 {
+            color: var(--am-secondary);
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        .config-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .config-item label {
+            font-size: 0.7rem;
+            color: var(--am-text-secondary);
+            text-transform: uppercase;
+        }
+        .config-item input, .config-item select {
+            background: var(--am-card);
+            border: 1px solid var(--am-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--am-text);
+            font-family: monospace;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
+            .col-span-2, .col-span-3, .col-span-4 { grid-column: span 2; }
+        }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .col-span-2, .col-span-3, .col-span-4 { grid-column: span 1; }
+            .header { padding: 10px 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">
+            <div class="logo-icon">⚡</div>
+            <div>
+                <div class="logo-text"><span>Algo</span><span>Maitri</span></div>
+                <div class="tagline">Smart Algorithms, Warm Relationships</div>
+            </div>
+        </div>
+        <div class="header-controls">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <i class="fas fa-sun"></i> <i class="fas fa-moon" style="display: none;"></i>
+            </div>
+            <div class="paper-toggle" onclick="togglePaperMode()">
+                <i class="fas fa-file-alt"></i>
+                <span id="paperModeLabel">PAPER MODE</span>
+                <div class="toggle-switch" id="paperToggle"><div class="toggle-slider"></div></div>
+            </div>
+            <div class="market-status" id="marketStatus"><i class="fas fa-circle"></i> CHECKING...</div>
+            <div class="countdown" id="countdown"><i class="fas fa-sync-alt"></i> 30s</div>
+            <button class="btn btn-sm" onclick="refreshAll()" style="background: var(--am-bg);"><i class="fas fa-refresh"></i> Refresh</button>
+            <div class="clock" id="clock"><i class="far fa-clock"></i> --:--:--</div>
+        </div>
+    </div>
+
+    <div class="index-bar" id="indexBar"></div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+        <div class="card col-span-1">
+            <div class="card-header"><span class="card-title"><i class="fas fa-wallet"></i> Portfolio</span><span class="badge badge-purple" id="paperIndicator">📝 PAPER</span></div>
+            <div class="stat-number" id="portfolioBalance">₹10,00,000</div>
+            <div class="stat-label">Available Balance</div>
+            <div class="stat-number positive" id="portfolioPnl">₹0</div>
+            <div class="stat-label">Total P&L</div>
+        </div>
+
+        <div class="card col-span-1">
+            <div class="card-header"><span class="card-title"><i class="fas fa-chart-line"></i> Performance</span></div>
+            <div class="stat-number" id="winRate">0%</div><div class="stat-label">Win Rate</div>
+            <div class="stat-number" id="totalTrades">0</div><div class="stat-label">Total Trades</div>
+            <div class="stat-number" id="activePositions">0</div><div class="stat-label">Active Positions</div>
+        </div>
+
+        <div class="card col-span-2">
+            <div class="card-header"><span class="card-title"><i class="fas fa-bolt"></i> Quick Trade</span><span id="tradeStatus" class="badge badge-gold">Ready</span></div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <select id="tradeSymbol" class="trade-input" style="flex: 1;"><option value="NIFTY">NIFTY</option><option value="BANKNIFTY">BANKNIFTY</option><option value="FINNIFTY">FINNIFTY</option><option value="SENSEX">SENSEX</option></select>
+                <select id="tradeType" class="trade-input" style="flex: 1;"><option value="BUY">BUY (LONG) ▲</option><option value="SELL">SELL (SHORT) ▼</option></select>
+                <input type="number" id="tradeQty" class="trade-input" placeholder="Qty" value="10" style="width: 80px;">
+                <input type="number" id="tradePrice" class="trade-input" placeholder="Price" value="0" step="0.05" style="width: 100px;">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-buy" onclick="placeQuickOrder('BUY')" style="flex: 1;"><i class="fas fa-arrow-up"></i> BUY</button>
+                <button class="btn btn-sell" onclick="placeQuickOrder('SELL')" style="flex: 1;"><i class="fas fa-arrow-down"></i> SELL</button>
+                <button class="btn btn-danger" onclick="closeAllPositions()"><i class="fas fa-times"></i> Close All</button>
+            </div>
+        </div>
+
+        <div class="card col-span-2">
+            <div class="card-header"><span class="card-title"><i class="fas fa-chart-simple"></i> Open Positions</span><button class="btn btn-sm" onclick="loadPositions()"><i class="fas fa-refresh"></i></button></div>
+            <div class="table-container"><table class="data-table"><thead><tr><th>Symbol</th><th>Type</th><th>Entry</th><th>Current</th><th>Qty</th><th>P&L</th><th>Action</th></tr></thead><tbody id="positionsTable"><tr><td colspan="7" style="text-align: center;">No open positions</tbody></table></div>
+        </div>
+
+        <div class="card col-span-1">
+            <div class="card-header"><span class="card-title"><i class="fas fa-chart-line"></i> Equity Curve</span></div>
+            <div class="chart-container"><canvas id="equityChart"></canvas></div>
+        </div>
+
+        <div class="card col-span-1">
+            <div class="card-header"><span class="card-title"><i class="fas fa-chart-pie"></i> Strategy Performance</span></div>
+            <div class="strategy-grid" id="strategyGrid"><div style="text-align: center;">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="nav-tabs">
+        <button class="nav-tab" data-tab="trades"><i class="fas fa-history"></i> Trade History</button>
+        <button class="nav-tab active" data-tab="optionchain"><i class="fas fa-link"></i> Option Chain</button>
+        <button class="nav-tab" data-tab="greeks"><i class="fas fa-chart-simple"></i> Greeks</button>
+        <button class="nav-tab" data-tab="optioncontrol"><i class="fas fa-sliders-h"></i> Option Control</button>
+        <button class="nav-tab" data-tab="backtest"><i class="fas fa-flask"></i> Backtest</button>
+        <button class="nav-tab" data-tab="config"><i class="fas fa-cog"></i> Config</button>
+        <button class="nav-tab" data-tab="logs"><i class="fas fa-file-alt"></i> Logs</button>
+        <button class="nav-tab" data-tab="commands"><i class="fas fa-terminal"></i> Commands</button>
+        <button class="nav-tab" data-tab="botcontrol"><i class="fas fa-robot"></i> Bot Control</button>
+    </div>
+
+    <!-- Tab 1: Trade History -->
+    <div id="tab-trades" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-history"></i> Trade Analysis (Auto vs Manual)</span>
+                <div><button class="btn btn-sm" onclick="filterTrades('all')">All</button><button class="btn btn-sm" onclick="filterTrades('AUTO')">Auto</button><button class="btn btn-sm" onclick="filterTrades('MANUAL')">Manual</button></div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3,1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">🤖 AUTO TRADES</div><div class="stat-number" id="autoTradeCount">0</div><div class="stat-label">P&L: <span id="autoPnl">₹0</span></div></div>
+                <div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">✋ MANUAL TRADES</div><div class="stat-number" id="manualTradeCount">0</div><div class="stat-label">P&L: <span id="manualPnl">₹0</span></div></div>
+                <div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">📈 OVERALL</div><div class="stat-number" id="overallTradeCount">0</div><div class="stat-label">P&L: <span id="overallPnl">₹0</span></div></div>
+            </div>
+            <div class="table-container"><table class="data-table"><thead><tr><th>Time</th><th>Symbol</th><th>Type</th><th>Strategy</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Status</th></tr></thead><tbody id="tradesTable"><tr><td colspan="8" style="text-align: center;">Loading...</tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Option Chain (FIXED ALIGNMENT) -->
+    <div id="tab-optionchain" class="tab-content active">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-link"></i> Option Chain</span>
+                <div style="display: flex; gap: 10px;">
+                    <select id="ocUnderlying" class="trade-input"><option value="NIFTY">NIFTY</option><option value="BANKNIFTY">BANKNIFTY</option><option value="FINNIFTY">FINNIFTY</option></select>
+                    <select id="ocExpiry" class="trade-input"><option value="0">Current Expiry</option><option value="1">Next Expiry</option></select>
+                    <button class="btn btn-sm btn-primary" onclick="loadOptionChain()"><i class="fas fa-refresh"></i> Load</button>
+                </div>
+            </div>
+            <div id="optionChainMeta" style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;"></div>
+            <div class="table-container">
+                <table class="data-table" id="optionChainTable">
+                    <thead>
+                        <tr>
+                            <th>Strike</th>
+                            <th colspan="6">CALLS (CE)</th>
+                            <th>ATM</th>
+                            <th colspan="6">PUTS (PE)</th>
+                            <th>Strike</th>
+                         </tr>
+                        <tr>
+                            <th></th>
+                            <th>LTP</th><th>OI</th><th>OI Chg</th><th>IV%</th><th>Delta</th><th>Gamma</th>
+                            <th></th>
+                            <th>Delta</th><th>IV%</th><th>OI Chg</th><th>OI</th><th>Gamma</th><th>LTP</th>
+                            <th></th>
+                         </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="15" style="text-align: center;">Click Load to fetch data</tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Greeks -->
+    <div id="tab-greeks" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-chart-simple"></i> Greeks Heatmap</span></div>
+            <div class="greeks-controls">
+                <button class="greeks-btn active" data-metric="delta" onclick="setGreeksMetric('delta')">Delta</button>
+                <button class="greeks-btn" data-metric="gamma" onclick="setGreeksMetric('gamma')">Gamma</button>
+                <button class="greeks-btn" data-metric="theta" onclick="setGreeksMetric('theta')">Theta</button>
+                <button class="greeks-btn" data-metric="vega" onclick="setGreeksMetric('vega')">Vega</button>
+                <button class="greeks-btn" data-metric="iv" onclick="setGreeksMetric('iv')">IV%</button>
+                <button class="greeks-btn" data-metric="oi" onclick="setGreeksMetric('oi')">OI</button>
+            </div>
+            <div class="table-container"><table class="data-table" id="greeksTable"><thead><tr><th>Strike</th><th>CE Value</th><th>CE Heat</th><th>ATM</th><th>PE Heat</th><th>PE Value</th></tr></thead><tbody><tr><td colspan="6" style="text-align: center;">Load Option Chain first</tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Tab 4: Option Control -->
+    <div id="tab-optioncontrol" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-sliders-h"></i> Option Trading Control</span><span id="optionLiveStatus" class="badge badge-green">● ACTIVE</span></div>
+            <div style="display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; margin-bottom: 20px;">
+                <div style="background: var(--am-bg); padding: 12px; border-radius: 12px;"><div class="stat-label">OPTION TRADING</div><div class="stat-number" id="optionMasterStatus">--</div><button class="btn btn-sm btn-primary" onclick="toggleOptionTrading()" style="margin-top: 5px;">Toggle</button></div>
+                <div style="background: var(--am-bg); padding: 12px; border-radius: 12px;"><div class="stat-label">ACTIVE POSITIONS</div><div class="stat-number" id="optionPositionCount">0</div></div>
+                <div style="background: var(--am-bg); padding: 12px; border-radius: 12px;"><div class="stat-label">OPTION P&L</div><div class="stat-number" id="optionTotalPnl">₹0</div></div>
+                <div style="background: var(--am-bg); padding: 12px; border-radius: 12px;"><div class="stat-label">TODAY'S PREMIUM</div><div class="stat-number" id="optionTodayPremium">₹0</div></div>
+            </div>
+            <div class="table-container"><table class="data-table"><thead><tr><th>Symbol</th><th>Type</th><th>Strike</th><th>Entry</th><th>Current</th><th>Lots</th><th>P&L</th><th>Action</th></tr></thead><tbody id="optionPositionsBody"><tr><td colspan="8" style="text-align: center;">No option positions</tbody></table></div>
+        </div>
+    </div>
+
+    <!-- Tab 5: Backtest -->
+    <div id="tab-backtest" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-flask"></i> Strategy Backtest</span><span id="backtestStatus" class="badge badge-gold">Ready</span></div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 15px; margin-bottom: 20px;">
+                <select id="backtestSymbol" class="trade-input"><option value="NIFTY">NIFTY</option><option value="BANKNIFTY">BANKNIFTY</option></select>
+                <select id="backtestStrategy" class="trade-input"><option value="EMA_RSI">EMA/RSI</option><option value="MACD_Bollinger">MACD+Bollinger</option><option value="RSI_50_Crossover">RSI 50 Crossover</option><option value="MA_Crossover_50_200">MA Crossover</option></select>
+                <input type="date" id="backtestStart" class="trade-input" value="2024-01-01">
+                <input type="date" id="backtestEnd" class="trade-input" value="2024-12-31">
+                <button class="btn btn-primary" onclick="runBacktest()"><i class="fas fa-play"></i> Run Backtest</button>
+            </div>
+            <div id="backtestResults"></div>
+        </div>
+    </div>
+
+    <!-- Tab 6: Config (FULL CONFIGURATION) -->
+    <div id="tab-config" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-cog"></i> Configuration</span><button class="btn btn-primary btn-sm" onclick="saveAllConfig()"><i class="fas fa-save"></i> Save All</button></div>
+            
+            <!-- Risk Management Section -->
+            <div class="config-section">
+                <h3>⚠️ Risk Management</h3>
+                <div class="config-grid">
+                    <div class="config-item"><label>💰 Base Capital (₹)</label><input type="number" id="cfg_base_capital" value="30000"></div>
+                    <div class="config-item"><label>📊 Market Risk %</label><input type="number" id="cfg_market_risk" value="1" step="0.1"></div>
+                    <div class="config-item"><label>📈 Capital Risk %</label><input type="number" id="cfg_capital_risk" value="0.5" step="0.1"></div>
+                    <div class="config-item"><label>🎯 Max Capital Per Trade %</label><input type="number" id="cfg_max_capital" value="50" step="5"></div>
+                    <div class="config-item"><label>📋 Max Orders Per Day</label><input type="number" id="cfg_max_orders" value="5"></div>
+                    <div class="config-item"><label>⚖️ Risk/Reward Ratio</label><input type="number" id="cfg_rr_ratio" value="3" step="0.5"></div>
+                    <div class="config-item"><label>📊 ATR Multiplier</label><input type="number" id="cfg_atr_mult" value="5" step="0.5"></div>
+                    <div class="config-item"><label>💵 Minimum Trading Capital</label><input type="number" id="cfg_min_capital" value="10"></div>
+                    <div class="config-item"><label>🏦 Broker Margin Multiplier</label><input type="number" id="cfg_margin_mult" value="4" step="0.5"></div>
+                </div>
+            </div>
+
+            <!-- Trading Parameters Section -->
+            <div class="config-section">
+                <h3>⚙️ Trading Parameters</h3>
+                <div class="config-grid">
+                    <div class="config-item"><label>⏱️ Timeframe (minutes)</label><select id="cfg_timeframe"><option value="1">1 Minute</option><option value="5">5 Minutes</option><option value="15" selected>15 Minutes</option><option value="30">30 Minutes</option><option value="60">1 Hour</option></select></div>
+                    <div class="config-item"><label>🎯 OTM Count</label><input type="number" id="cfg_otm_count" value="1"></div>
+                    <div class="config-item"><label>⏰ Max Holding Hours</label><input type="number" id="cfg_max_holding" value="5" step="0.5"></div>
+                    <div class="config-item"><label>🔄 Reentry Allowed</label><select id="cfg_reentry"><option value="true">Yes</option><option value="false">No</option></select></div>
+                    <div class="config-item"><label>⚡ Use Super Orders</label><select id="cfg_super_orders"><option value="true">Enabled</option><option value="false">Disabled</option></select></div>
+                    <div class="config-item"><label>📈 Trailing Jump %</label><input type="number" id="cfg_trailing_jump" value="0.2" step="0.05"></div>
+                    <div class="config-item"><label>📊 Min Signal Strength</label><input type="number" id="cfg_min_signal" value="10"></div>
+                    <div class="config-item"><label>⏸️ Signal Cooldown (minutes)</label><input type="number" id="cfg_cooldown" value="5"></div>
+                    <div class="config-item"><label>🚦 Max Signals Per Hour</label><input type="number" id="cfg_max_signals" value="3"></div>
+                </div>
+            </div>
+
+            <!-- Option Trading Parameters Section -->
+            <div class="config-section">
+                <h3>🎯 Option Trading Parameters</h3>
+                <div class="config-grid">
+                    <div class="config-item"><label>🔘 Option Trading Enabled</label><select id="cfg_option_enabled"><option value="true">Yes</option><option value="false">No</option></select></div>
+                    <div class="config-item"><label>📊 Option Symbols</label><input type="text" id="cfg_option_symbols" value="NIFTY,BANKNIFTY,FINNIFTY"></div>
+                    <div class="config-item"><label>🎯 OTM Count</label><input type="number" id="cfg_option_otm" value="1"></div>
+                    <div class="config-item"><label>📅 Expiry Index</label><select id="cfg_option_expiry"><option value="0">Current Expiry</option><option value="1">Next Expiry</option></select></div>
+                    <div class="config-item"><label>🛑 SL Multiplier</label><input type="number" id="cfg_option_sl" value="0.20" step="0.05"></div>
+                    <div class="config-item"><label>🎯 Target Multiplier</label><input type="number" id="cfg_target_mult" value="2.5" step="0.5"></div>
+                    <div class="config-item"><label>📦 Max Lots Per Trade</label><input type="number" id="cfg_max_lots" value="2"></div>
+                    <div class="config-item"><label>⚠️ Risk % Per Trade</label><input type="number" id="cfg_option_risk" value="0.5" step="0.1"></div>
+                </div>
+            </div>
+
+            <!-- Paper Trading & Logging Section -->
+            <div class="config-section">
+                <h3>📝 Paper Trading & Logging</h3>
+                <div class="config-grid">
+                    <div class="config-item"><label>📄 Paper Trading Enabled</label><select id="cfg_paper_enabled"><option value="true">Yes (Simulated)</option><option value="false">No (Live)</option></select></div>
+                    <div class="config-item"><label>💰 Paper Balance (₹)</label><input type="number" id="cfg_paper_balance" value="1000000"></div>
+                    <div class="config-item"><label>📋 Log Level</label><select id="cfg_log_level"><option value="DEBUG">DEBUG</option><option value="INFO" selected>INFO</option><option value="WARNING">WARNING</option><option value="ERROR">ERROR</option></select></div>
+                    <div class="config-item"><label>📁 Log Directory</label><input type="text" id="cfg_log_dir" value="logs"></div>
+                    <div class="config-item"><label>📅 Log Retention (days)</label><input type="number" id="cfg_log_retention" value="30"></div>
+                </div>
+            </div>
+
+            <!-- Watchlist Section -->
+            <div class="config-section">
+                <h3>📋 Watchlist</h3>
+                <div class="config-grid">
+                    <div class="config-item"><label>Watchlist Symbols (comma separated)</label><input type="text" id="cfg_watchlist" value="IDBI,BEL,ITC,RELIANCE,TCS"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 7: Logs -->
+    <div id="tab-logs" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-file-alt"></i> System Logs</span><select id="logType" class="trade-input" style="width: auto;" onchange="loadLogs()"><option value="trades">Trade Logs</option><option value="errors">Error Logs</option></select></div>
+            <div id="logContent" style="background: var(--am-bg); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.7rem; max-height: 400px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <!-- Tab 8: Commands -->
+    <div id="tab-commands" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-terminal"></i> Telegram Commands</span></div>
+            <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                <div class="badge badge-purple">/status</div> <div class="badge badge-purple">/balance</div> <div class="badge badge-purple">/positions</div>
+                <div class="badge badge-purple">/market</div> <div class="badge badge-purple">/signals</div> <div class="badge badge-purple">/help</div>
+                <div class="badge badge-purple">/option_status</div> <div class="badge badge-purple">/option_on</div> <div class="badge badge-purple">/option_off</div>
+                <div class="badge badge-purple">/tradingmode</div> <div class="badge badge-purple">/watchlist</div> <div class="badge badge-purple">/close_all</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 9: Bot Control -->
+    <div id="tab-botcontrol" class="tab-content">
+        <div class="card">
+            <div class="card-header"><span class="card-title"><i class="fas fa-robot"></i> Bot Control Panel</span><span id="botStatusBadge" class="badge badge-red">● STOPPED</span></div>
+            <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
+                <button class="btn btn-buy" onclick="controlBot('start')"><i class="fas fa-play"></i> START BOT</button>
+                <button class="btn btn-danger" onclick="controlBot('stop')"><i class="fas fa-stop"></i> STOP BOT</button>
+                <button class="btn btn-primary" onclick="controlBot('restart')"><i class="fas fa-sync-alt"></i> RESTART</button>
+            </div>
+            <div id="botLogs" style="background: var(--am-bg); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.7rem; max-height: 300px; overflow-y: auto;"></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let equityChart = null, allTrades = [], currentFilter = 'all', optionChainData = null, greeksMetric = 'delta', countdown = 30;
+
+        document.addEventListener('DOMContentLoaded', function() { initCharts(); refreshAll(); startCountdown(); loadPaperStatus(); loadFullConfig(); });
+
+        function initCharts() {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            equityChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Portfolio Value', data: [], borderColor: '#00E5A0', backgroundColor: 'rgba(0,229,160,0.1)', fill: true, tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#E8ECF2' } } }, scales: { y: { ticks: { color: '#8A92B0', callback: v => '₹' + v.toLocaleString() } }, x: { ticks: { color: '#8A92B0' } } } }
+            });
+        }
+
+        function startCountdown() { setInterval(() => { if (countdown > 0) { countdown--; document.getElementById('countdown').innerHTML = `<i class="fas fa-sync-alt"></i> ${countdown}s`; if (countdown === 0) { countdown = 30; refreshAll(); } } }, 1000); }
+
+        async function refreshAll() { await Promise.all([loadMarketData(), loadPortfolio(), loadPositions(), loadTrades(), loadStrategyPerformance()]); updateClock(); }
+
+        async function loadMarketData() {
+            try { let res = await fetch('/api/market'); let data = await res.json(); 
+                document.getElementById('indexBar').innerHTML = Object.entries(data).map(([n,i]) => `<div class="index-card"><div class="index-name">${n}</div><div class="index-price">₹${i.ltp.toLocaleString()}</div><div class="index-change ${i.change_percent > 0 ? 'up' : 'down'}">${i.change_percent > 0 ? '+' : ''}${i.change_percent.toFixed(2)}%</div></div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadPortfolio() {
+            try { let res = await fetch('/api/paper/summary'); let data = await res.json();
+                document.getElementById('portfolioBalance').innerHTML = `₹${(data.current_balance || 1000000).toLocaleString()}`;
+                document.getElementById('portfolioPnl').innerHTML = `₹${(data.total_pnl || 0).toLocaleString()}`;
+                document.getElementById('winRate').innerHTML = `${(data.win_rate || 0).toFixed(1)}%`;
+                document.getElementById('totalTrades').innerHTML = data.total_trades || 0;
+                document.getElementById('activePositions').innerHTML = data.active_positions || 0;
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadPositions() {
+            try { let res = await fetch('/api/paper/positions'); let positions = await res.json();
+                document.getElementById('positionsTable').innerHTML = positions.length ? positions.map(p => `<tr><td><strong>${p.symbol}</strong></td><td class="${p.position_type === 'LONG' ? 'positive' : 'negative'}">${p.position_type}</td><td>₹${p.entry_price.toFixed(2)}</span></td><td>₹${p.current_price?.toFixed(2) || p.entry_price.toFixed(2)}</span><td>${p.quantity}</td><td class="${(p.pnl || 0) >= 0 ? 'positive' : 'negative'}">₹${(p.pnl || 0).toFixed(2)}</span><td><button class="btn btn-sm btn-danger" onclick="closePosition('${p.symbol}')">Close</button></td></tr>`).join('') : '<tr><td colspan="7" style="text-align: center;">No open positions</tbody>';
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadTrades() {
+            try { let res = await fetch('/api/trades/combined'); let data = await res.json();
+                if (data.status === 'success') {
+                    allTrades = data.all_trades || [];
+                    document.getElementById('autoTradeCount').innerHTML = data.auto_stats?.total_trades || 0;
+                    document.getElementById('autoPnl').innerHTML = `₹${(data.auto_stats?.total_pnl || 0).toFixed(2)}`;
+                    document.getElementById('manualTradeCount').innerHTML = data.manual_stats?.total_trades || 0;
+                    document.getElementById('manualPnl').innerHTML = `₹${(data.manual_stats?.total_pnl || 0).toFixed(2)}`;
+                    document.getElementById('overallTradeCount').innerHTML = data.overall_stats?.total_trades || 0;
+                    document.getElementById('overallPnl').innerHTML = `₹${(data.overall_stats?.total_pnl || 0).toFixed(2)}`;
+                    renderTrades();
+                    updateEquityChart();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function renderTrades() {
+            let filtered = currentFilter === 'all' ? allTrades : allTrades.filter(t => t.trade_type === currentFilter);
+            document.getElementById('tradesTable').innerHTML = filtered.slice(0, 30).map(t => `<tr><td>${t.entry_time?.slice(5, 16) || '-'}</td><td><strong>${t.symbol}</strong></td><td class="${t.position_type === 'LONG' ? 'positive' : 'negative'}">${t.position_type || '-'}</td><td><span class="badge badge-purple">${t.strategy || '-'}</span></td><td>₹${(t.entry_price || 0).toFixed(2)}</span></td><td>₹${(t.exit_price || 0).toFixed(2)}</span><td><td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">₹${(t.pnl || 0).toFixed(2)}</span><td><span class="badge ${t.status === 'open' ? 'badge-green' : 'badge-gold'}">${t.status || 'closed'}</span></td></td>`).join('') || '<tr><td colspan="8" style="text-align: center;">No trades found</tbody>';
+        }
+
+        function updateEquityChart() {
+            if (!equityChart) return;
+            let cumulative = [], sum = 100000;
+            allTrades.slice().reverse().forEach(t => { sum += (t.pnl || 0); cumulative.push({ equity: sum, time: t.entry_time }); });
+            equityChart.data.labels = cumulative.map(c => c.time?.slice(5, 10) || '');
+            equityChart.data.datasets[0].data = cumulative.map(c => c.equity);
+            equityChart.update();
+        }
+
+        async function loadStrategyPerformance() {
+            try { let res = await fetch('/api/trades/combined'); let data = await res.json();
+                if (data.strategy_performance) {
+                    document.getElementById('strategyGrid').innerHTML = data.strategy_performance.map(s => `<div class="strategy-card"><div class="strategy-name">${s.strategy}</div><div><span>P&L: <span class="${s.total_pnl >= 0 ? 'positive' : 'negative'}">₹${s.total_pnl.toFixed(2)}</span></span><br><span>Trades: ${s.trades}</span><br><span>WR: ${s.win_rate}%</span></div></div>`).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function filterTrades(filter) { currentFilter = filter; renderTrades(); }
+
+        async function placeQuickOrder(action) {
+            let symbol = document.getElementById('tradeSymbol').value, qty = parseInt(document.getElementById('tradeQty').value), price = parseFloat(document.getElementById('tradePrice').value) || 0;
+            if (!symbol || qty <= 0) { showToast('Invalid symbol or quantity', 'error'); return; }
+            showToast(`Placing ${action} order...`, 'info');
+            try {
+                let res = await fetch('/api/paper/place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, type: action, quantity: qty, price }) });
+                let data = await res.json();
+                showToast(data.message, data.success ? 'success' : 'error');
+                if (data.success) setTimeout(() => refreshAll(), 1000);
+            } catch(e) { showToast(e.message, 'error'); }
+        }
+
+        async function closePosition(symbol) { if (!confirm(`Close ${symbol}?`)) return; try { let res = await fetch('/api/paper/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) }); let data = await res.json(); showToast(data.message); refreshAll(); } catch(e) { showToast(e.message, 'error'); } }
+        async function closeAllPositions() { if (!confirm('Close ALL positions?')) return; try { let res = await fetch('/api/close-all', { method: 'POST' }); let data = await res.json(); showToast(`Closed ${data.closed} positions`); refreshAll(); } catch(e) { showToast(e.message, 'error'); } }
+
+        // FIXED: Option Chain with proper alignment and LTP highlighting
+        async function loadOptionChain() {
+            let underlying = document.getElementById('ocUnderlying').value;
+            try {
+                let res = await fetch(`/api/option-chain?underlying=${underlying}&expiry=0&num_strikes=12`); let data = await res.json();
+                if (data.success) {
+                    optionChainData = data;
+                    document.getElementById('optionChainMeta').innerHTML = `<div class="badge badge-green">Spot: ₹${data.spot_price}</div><div class="badge badge-purple">ATM: ${data.atm_strike}</div><div class="badge badge-gold">PCR: ${data.pcr}</div><div class="badge badge-green">VIX: ${data.vix}</div>`;
+                    
+                    document.querySelector('#optionChainTable tbody').innerHTML = data.strikes.map(s => `
+                        <tr class="${s.strike === data.atm_strike ? 'atm-row' : ''}">
+                            <td><strong>${s.strike}</strong></td>
+                            <td class="${s.ce.ltp > 0 ? 'ltp-positive' : 'ltp-negative'}">₹${s.ce.ltp}</td>
+                            <td>${(s.ce.oi / 1000).toFixed(0)}K</td>
+                            <td class="${s.ce.oi_change >= 0 ? 'positive' : 'negative'}">${s.ce.oi_change > 0 ? '+' : ''}${(s.ce.oi_change / 1000).toFixed(0)}K</td>
+                            <td>${s.ce.iv}%</td>
+                            <td>${s.ce.delta}</td>
+                            <td>${s.ce.gamma}</td>
+                            <td class="${s.strike === data.atm_strike ? 'atm-label' : ''}">${s.strike === data.atm_strike ? '● ATM' : ''}</td>
+                            <td>${s.pe.delta}</td>
+                            <td>${s.pe.iv}%</td>
+                            <td class="${s.pe.oi_change >= 0 ? 'positive' : 'negative'}">${s.pe.oi_change > 0 ? '+' : ''}${(s.pe.oi_change / 1000).toFixed(0)}K</td>
+                            <td>${(s.pe.oi / 1000).toFixed(0)}K</td>
+                            <td>${s.pe.gamma}</td>
+                            <td class="${s.pe.ltp > 0 ? 'ltp-negative' : 'ltp-positive'}">₹${s.pe.ltp}</td>
+                            <td><strong>${s.strike}</strong></td>
+                        </tr>
+                    `).join('');
+                    renderGreeks();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function renderGreeks() { if (!optionChainData || !optionChainData.strikes) return; let maxVal = Math.max(1, ...optionChainData.strikes.flatMap(s => [Math.abs(s.ce[greeksMetric] || 0), Math.abs(s.pe[greeksMetric] || 0)])); document.getElementById('greeksTable').innerHTML = optionChainData.strikes.map(s => `<tr><td><strong>${s.strike}</strong></td><td>${formatGreek(s.ce[greeksMetric])}</td><td style="background:${getColor(s.ce[greeksMetric], maxVal)}; border-radius:4px; text-align:center;">&nbsp;</td><td>${s.strike === optionChainData.atm_strike ? 'ATM' : ''}</td><td style="background:${getColor(s.pe[greeksMetric], maxVal)}; border-radius:4px; text-align:center;">&nbsp;</td><td>${formatGreek(s.pe[greeksMetric])}</td></tr>`).join(''); }
+        function formatGreek(v) { if (greeksMetric === 'oi') return (Math.abs(v) / 1000).toFixed(0) + 'K'; if (greeksMetric === 'iv') return v.toFixed(1) + '%'; return v.toFixed(4); }
+        function getColor(val, max) { let intensity = Math.min(0.8, Math.abs(val) / max); return val >= 0 ? `rgba(0,200,100,${0.3 + intensity * 0.5})` : `rgba(200,50,50,${0.3 + intensity * 0.5})`; }
+        function setGreeksMetric(metric) { greeksMetric = metric; document.querySelectorAll('.greeks-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.greeks-btn[data-metric="${metric}"]`).classList.add('active'); renderGreeks(); }
+
+        async function toggleOptionTrading() { try { let res = await fetch('/api/option/toggle', { method: 'POST' }); let data = await res.json(); showToast(`Option trading ${data.enabled ? 'ENABLED' : 'DISABLED'}`); loadOptionData(); } catch(e) { showToast(e.message, 'error'); } }
+        async function loadOptionData() {
+            try { let s = await (await fetch('/api/option/summary')).json(); document.getElementById('optionPositionCount').innerHTML = s.active_positions || 0; document.getElementById('optionTotalPnl').innerHTML = `₹${(s.total_pnl || 0).toFixed(2)}`; document.getElementById('optionTodayPremium').innerHTML = `₹${(s.today_premium || 0).toFixed(2)}`; let p = await (await fetch('/api/option/positions')).json(); document.getElementById('optionPositionsBody').innerHTML = p.length ? p.map(pos => `<tr><td><strong>${pos.symbol}</strong></td><td class="${pos.type === 'CALL' ? 'positive' : 'negative'}">${pos.type}</td><td>${pos.strike || 0}</td><td>₹${pos.entry_price.toFixed(2)}</span></td><td>₹${pos.current_price.toFixed(2)}</span><td>${pos.lots || 0}</td><td class="${pos.pnl >= 0 ? 'positive' : 'negative'}">₹${pos.pnl.toFixed(2)}</span></td><td><button class="btn btn-sm btn-danger" onclick="closeOptionPosition('${pos.symbol}')">Close</button></td></tr>`).join('') : '<tr><td colspan="8" style="text-align: center;">No option positions</tbody>';
+            } catch(e) { console.error(e); } }
+        async function closeOptionPosition(symbol) { if (!confirm(`Close ${symbol}?`)) return; try { let res = await fetch('/api/option/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) }); let data = await res.json(); showToast(`Closed ${symbol}`); loadOptionData(); loadTrades(); } catch(e) { showToast(e.message, 'error'); } }
+
+        async function runBacktest() {
+            let symbol = document.getElementById('backtestSymbol').value, strategy = document.getElementById('backtestStrategy').value, startDate = document.getElementById('backtestStart').value, endDate = document.getElementById('backtestEnd').value;
+            showToast('Running backtest...', 'info');
+            try {
+                let res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, strategy, startDate, endDate }) });
+                let data = await res.json();
+                if (data.success && data.results) { let m = data.results.metrics; document.getElementById('backtestResults').innerHTML = `<div style="display: grid; grid-template-columns: repeat(4,1fr); gap: 15px; margin-top: 15px;"><div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">Trades</div><div class="stat-number">${m.total_trades}</div></div><div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">Win Rate</div><div class="stat-number ${m.win_rate >= 50 ? 'positive' : 'negative'}">${m.win_rate}%</div></div><div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">Total P&L</div><div class="stat-number ${m.total_pnl >= 0 ? 'positive' : 'negative'}">₹${m.total_pnl}</div></div><div style="background: var(--am-bg); padding: 15px; border-radius: 12px;"><div class="stat-label">Sharpe</div><div class="stat-number">${m.sharpe_ratio}</div></div></div>`; showToast('Backtest completed!', 'success'); }
+            } catch(e) { showToast(e.message, 'error'); }
+        }
+
+        async function saveAllConfig() {
+            let config = {
+                BASE_CAPITAL: parseFloat(document.getElementById('cfg_base_capital').value),
+                MARKET_MONEY_RISK_PERCENT: parseFloat(document.getElementById('cfg_market_risk').value) / 100,
+                BASE_CAPITAL_RISK_PERCENT: parseFloat(document.getElementById('cfg_capital_risk').value) / 100,
+                MAX_CAPITAL_PER_TRADE: parseFloat(document.getElementById('cfg_max_capital').value) / 100,
+                MAX_ORDERS_PER_DAY: parseInt(document.getElementById('cfg_max_orders').value),
+                RISK_REWARD_RATIO: parseFloat(document.getElementById('cfg_rr_ratio').value),
+                ATR_MULTIPLIER: parseFloat(document.getElementById('cfg_atr_mult').value),
+                Minimum_trading_capital: parseFloat(document.getElementById('cfg_min_capital').value),
+                BROKER_MARGIN_MULTIPLIER: parseFloat(document.getElementById('cfg_margin_mult').value),
+                TIMEFRAME: document.getElementById('cfg_timeframe').value,
+                OTM_COUNT: parseInt(document.getElementById('cfg_otm_count').value),
+                MAX_HOLDING_HOURS: parseFloat(document.getElementById('cfg_max_holding').value),
+                REENTRY_ALLOWED: document.getElementById('cfg_reentry').value === 'true',
+                USE_SUPER_ORDERS: document.getElementById('cfg_super_orders').value === 'true',
+                TRAILING_JUMP: parseFloat(document.getElementById('cfg_trailing_jump').value),
+                MIN_SIGNAL_STRENGTH: parseInt(document.getElementById('cfg_min_signal').value),
+                SIGNAL_COOLDOWN_MINUTES: parseInt(document.getElementById('cfg_cooldown').value),
+                MAX_SIGNALS_PER_HOUR: parseInt(document.getElementById('cfg_max_signals').value),
+                OPTION_TRADING_ENABLED: document.getElementById('cfg_option_enabled').value === 'true',
+                OPTION_SYMBOLS: document.getElementById('cfg_option_symbols').value.split(',').map(s => s.trim()),
+                OPTION_OTM_COUNT: parseInt(document.getElementById('cfg_option_otm').value),
+                OPTION_EXPIRY: parseInt(document.getElementById('cfg_option_expiry').value),
+                OPTION_SL_MULTIPLIER: parseFloat(document.getElementById('cfg_option_sl').value),
+                OPTION_TARGET_MULTIPLIER: parseFloat(document.getElementById('cfg_target_mult').value),
+                OPTION_MAX_LOTS_PER_TRADE: parseInt(document.getElementById('cfg_max_lots').value),
+                OPTION_RISK_PER_TRADE_PERCENT: parseFloat(document.getElementById('cfg_option_risk').value) / 100,
+                PAPER_TRADING_ENABLED: document.getElementById('cfg_paper_enabled').value === 'true',
+                PAPER_BALANCE: parseFloat(document.getElementById('cfg_paper_balance').value),
+                LOG_LEVEL: document.getElementById('cfg_log_level').value,
+                LOG_DIR: document.getElementById('cfg_log_dir').value,
+                LOG_RETENTION_DAYS: parseInt(document.getElementById('cfg_log_retention').value),
+                WATCHLIST: document.getElementById('cfg_watchlist').value.split(',').map(s => s.trim().toUpperCase())
+            };
+            try { let res = await fetch('/api/config/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) }); let data = await res.json(); showToast(data.message, data.success ? 'success' : 'error'); } catch(e) { showToast(e.message, 'error'); }
+        }
+
+        async function loadFullConfig() {
+            try { let res = await fetch('/api/config/get'); let c = await res.json();
+                document.getElementById('cfg_base_capital').value = c.BASE_CAPITAL || 30000;
+                document.getElementById('cfg_market_risk').value = (c.MARKET_MONEY_RISK_PERCENT || 0.01) * 100;
+                document.getElementById('cfg_capital_risk').value = (c.BASE_CAPITAL_RISK_PERCENT || 0.005) * 100;
+                document.getElementById('cfg_max_capital').value = (c.MAX_CAPITAL_PER_TRADE || 0.5) * 100;
+                document.getElementById('cfg_max_orders').value = c.MAX_ORDERS_PER_DAY || 5;
+                document.getElementById('cfg_rr_ratio').value = c.RISK_REWARD_RATIO || 3;
+                document.getElementById('cfg_atr_mult').value = c.ATR_MULTIPLIER || 5;
+                document.getElementById('cfg_min_capital').value = c.Minimum_trading_capital || 10;
+                document.getElementById('cfg_margin_mult').value = c.BROKER_MARGIN_MULTIPLIER || 4;
+                document.getElementById('cfg_timeframe').value = c.TIMEFRAME || '15';
+                document.getElementById('cfg_otm_count').value = c.OTM_COUNT || 1;
+                document.getElementById('cfg_max_holding').value = c.MAX_HOLDING_HOURS || 5;
+                document.getElementById('cfg_reentry').value = c.REENTRY_ALLOWED ? 'true' : 'false';
+                document.getElementById('cfg_super_orders').value = c.USE_SUPER_ORDERS ? 'true' : 'false';
+                document.getElementById('cfg_trailing_jump').value = c.TRAILING_JUMP || 0.2;
+                document.getElementById('cfg_min_signal').value = c.MIN_SIGNAL_STRENGTH || 10;
+                document.getElementById('cfg_cooldown').value = c.SIGNAL_COOLDOWN_MINUTES || 5;
+                document.getElementById('cfg_max_signals').value = c.MAX_SIGNALS_PER_HOUR || 3;
+                document.getElementById('cfg_option_enabled').value = c.OPTION_TRADING_ENABLED ? 'true' : 'false';
+                document.getElementById('cfg_option_symbols').value = (c.OPTION_SYMBOLS || ['NIFTY', 'BANKNIFTY', 'FINNIFTY']).join(',');
+                document.getElementById('cfg_option_otm').value = c.OPTION_OTM_COUNT || 1;
+                document.getElementById('cfg_option_expiry').value = c.OPTION_EXPIRY || 0;
+                document.getElementById('cfg_option_sl').value = c.OPTION_SL_MULTIPLIER || 0.20;
+                document.getElementById('cfg_target_mult').value = c.OPTION_TARGET_MULTIPLIER || 2.5;
+                document.getElementById('cfg_max_lots').value = c.OPTION_MAX_LOTS_PER_TRADE || 2;
+                document.getElementById('cfg_option_risk').value = (c.OPTION_RISK_PER_TRADE_PERCENT || 0.005) * 100;
+                document.getElementById('cfg_paper_enabled').value = c.PAPER_TRADING_ENABLED ? 'true' : 'false';
+                document.getElementById('cfg_paper_balance').value = c.PAPER_BALANCE || 1000000;
+                document.getElementById('cfg_log_level').value = c.LOG_LEVEL || 'INFO';
+                document.getElementById('cfg_log_dir').value = c.LOG_DIR || 'logs';
+                document.getElementById('cfg_log_retention').value = c.LOG_RETENTION_DAYS || 30;
+                document.getElementById('cfg_watchlist').value = (c.WATCHLIST || ['IDBI', 'BEL', 'ITC']).join(',');
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadLogs() { let type = document.getElementById('logType').value; try { let res = await fetch(`/api/logs/${type}`); let data = await res.json(); document.getElementById('logContent').innerHTML = (data.logs || ['No logs']).map(l => `<div style="padding: 5px 0; border-bottom: 1px solid var(--am-border);">${escapeHtml(l)}</div>`).join(''); } catch(e) { console.error(e); } }
+        async function controlBot(action) { showToast(`${action.toUpperCase()}ING bot...`, 'info'); try { let res = await fetch(`/api/bot/${action}`, { method: 'POST' }); let data = await res.json(); showToast(data.message, data.success ? 'success' : 'error'); loadBotLogs(); } catch(e) { showToast(e.message, 'error'); } }
+        async function loadBotLogs() { try { let res = await fetch('/api/bot/logs'); let data = await res.json(); document.getElementById('botLogs').innerHTML = (data.logs || ['No logs']).slice(-50).map(l => `<div style="padding: 5px 0; border-bottom: 1px solid var(--am-border);">${escapeHtml(l)}</div>`).join(''); } catch(e) { console.error(e); } }
+
+        async function togglePaperMode() {
+            let toggle = document.getElementById('paperToggle'); let isActive = toggle.classList.contains('active'); let newState = !isActive;
+            try { let res = await fetch('/api/paper/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: newState }) }); let data = await res.json();
+                if (data.success) { if (newState) { toggle.classList.add('active'); document.getElementById('paperModeLabel').innerHTML = 'PAPER MODE'; document.getElementById('paperIndicator').innerHTML = '📝 PAPER'; showToast('Paper trading ENABLED', 'success'); } else { toggle.classList.remove('active'); document.getElementById('paperModeLabel').innerHTML = 'LIVE MODE'; document.getElementById('paperIndicator').innerHTML = '💰 LIVE'; showToast('Live trading ENABLED - Real money!', 'warning'); } }
+            } catch(e) { showToast(e.message, 'error'); }
+        }
+
+        async function loadPaperStatus() {
+            try { let res = await fetch('/api/paper/status'); let data = await res.json(); let toggle = document.getElementById('paperToggle');
+                if (data.enabled) { toggle.classList.add('active'); document.getElementById('paperModeLabel').innerHTML = 'PAPER MODE'; document.getElementById('paperIndicator').innerHTML = '📝 PAPER'; }
+                else { toggle.classList.remove('active'); document.getElementById('paperModeLabel').innerHTML = 'LIVE MODE'; document.getElementById('paperIndicator').innerHTML = '💰 LIVE'; }
+            } catch(e) { console.error(e); }
+        }
+
+        function toggleTheme() { let theme = document.documentElement.getAttribute('data-theme'); if (theme === 'light') { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('theme', 'dark'); } else { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); } }
+        function loadTheme() { let theme = localStorage.getItem('theme'); if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light'); }
+
+        function showToast(msg, type = 'info') { let container = document.getElementById('toastContainer'); let toast = document.createElement('div'); toast.className = `toast toast-${type}`; toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : (type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle')}"></i> ${msg}`; container.appendChild(toast); setTimeout(() => toast.remove(), 3000); }
+        function escapeHtml(text) { let div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function updateClock() { let now = new Date(); document.getElementById('clock').innerHTML = `<i class="far fa-clock"></i> ${now.toLocaleTimeString('en-IN')}`; let hours = now.getHours(); let isOpen = (hours > 9 || (hours === 9 && now.getMinutes() >= 15)) && hours < 15; let statusEl = document.getElementById('marketStatus'); statusEl.innerHTML = isOpen ? '<i class="fas fa-circle"></i> MARKET OPEN' : '<i class="fas fa-circle"></i> MARKET CLOSED'; statusEl.className = `market-status ${isOpen ? '' : 'closed'}`; }
+
+        document.querySelectorAll('.nav-tab').forEach(tab => { tab.addEventListener('click', () => { let tabId = tab.dataset.tab; document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); tab.classList.add('active'); document.getElementById(`tab-${tabId}`).classList.add('active'); if (tabId === 'optionchain') loadOptionChain(); if (tabId === 'logs') loadLogs(); if (tabId === 'optioncontrol') loadOptionData(); if (tabId === 'botcontrol') loadBotLogs(); }); });
+
+        loadTheme(); setInterval(updateClock, 1000); setInterval(() => { if (document.querySelector('.nav-tab.active')?.dataset.tab === 'optionchain') loadOptionChain(); }, 30000);
+    </script>
+</body>
+</html>

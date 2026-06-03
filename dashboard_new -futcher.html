@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoTrader Matrix Pro — Elite Trading Suite</title>
+    
+    <!-- Professional Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.js"></script>
+
+    <style>
+        :root {
+            /* CYBER DARK THEME */
+            --bg-body: #080a12;
+            --bg-card: rgba(16, 20, 35, 0.7);
+            --bg-panel: rgba(10, 12, 22, 0.95);
+            --border: rgba(0, 242, 255, 0.2);
+            --accent: #00f2ff;
+            --green: #00ff9d;
+            --red: #ff0055;
+            --purple: #bc13fe;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --font-main: 'Inter', sans-serif;
+            --font-data: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            /* PROFESSIONAL LIGHT THEME */
+            --bg-body: #f8fafc;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-panel: #ffffff;
+            --border: rgba(0, 0, 0, 0.1);
+            --accent: #0f172a;
+            --green: #10b981;
+            --red: #ef4444;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            transition: all 0.4s ease;
+            overflow-x: hidden;
+            font-size: 13px;
+        }
+
+        /* 3D Visuals */
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; }
+        #three-canvas { position: fixed; top: 0; left: 0; z-index: -2; opacity: 0.3; }
+
+        /* Glass Layout */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        .glass-card:hover { border-color: var(--accent); }
+
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 30px; background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .logo { font-weight: 800; font-size: 1.4rem; color: var(--accent); letter-spacing: -1px; }
+
+        /* Market Ticker */
+        .ticker-wrap {
+            background: rgba(0,0,0,0.2); padding: 8px 0; border-bottom: 1px solid var(--border);
+            overflow: hidden; white-space: nowrap; font-family: var(--font-data); font-size: 0.8rem;
+        }
+        .ticker-content { display: inline-block; animation: tickerScroll 45s linear infinite; }
+        @keyframes tickerScroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+        /* Grid System */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; padding: 20px;
+        }
+
+        /* Navigation */
+        .tab-bar {
+            display: flex; gap: 4px; padding: 0 20px; background: var(--bg-panel);
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 14px 22px; background: none; border: none; color: var(--text-secondary);
+            font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem;
+            border-bottom: 3px solid transparent; white-space: nowrap;
+        }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        /* Typography & Tables */
+        .table-responsive { overflow-x: auto; width: 100%; }
+        .cyber-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center; }
+        .cyber-table th {
+            padding: 12px; background: rgba(0, 242, 255, 0.05);
+            color: var(--text-secondary); font-size: 0.65rem; text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+        .cyber-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.03); font-family: var(--font-data); }
+        .atm-highlight { background: rgba(188, 19, 254, 0.1) !important; font-weight: 800; }
+
+        /* Interactive Elements */
+        .btn {
+            padding: 10px 16px; border-radius: 8px; border: none; font-weight: 700;
+            cursor: pointer; transition: 0.3s; font-size: 0.75rem; font-family: var(--font-main);
+        }
+        .btn-buy { background: var(--green); color: #000; box-shadow: 0 4px 15px rgba(0, 255, 157, 0.3); }
+        .btn-sell { background: var(--red); color: #fff; box-shadow: 0 4px 15px rgba(255, 0, 85, 0.3); }
+        .btn-ghost { background: transparent; border: 1px solid var(--accent); color: var(--accent); }
+
+        .theme-toggle {
+            width: 48px; height: 24px; background: #1e293b; border-radius: 50px;
+            position: relative; cursor: pointer; border: 1px solid var(--border);
+        }
+        .toggle-knob {
+            width: 18px; height: 18px; background: var(--accent); border-radius: 50%;
+            position: absolute; top: 2px; left: 3px; transition: 0.3s;
+        }
+        [data-theme="light"] .toggle-knob { left: 25px; background: #f59e0b; }
+
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; }
+        .pos { color: var(--green) !important; }
+        .neg { color: var(--red) !important; }
+
+        /* Terminal Style Logs */
+        .log-terminal {
+            background: #000; height: 380px; overflow-y: auto; padding: 20px;
+            font-family: var(--font-data); font-size: 0.75rem; color: #00ff9d;
+            border-radius: 8px; border: 1px solid #1e293b; line-height: 1.6;
+        }
+
+        .stat-val { font-size: 1.6rem; font-weight: 800; font-family: var(--font-data); margin: 5px 0; }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <canvas id="three-canvas"></canvas>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo"><i class="fas fa-wave-square"></i> MATRIX PRO</div>
+        
+        <div style="display: flex; gap: 20px; align-items: center;">
+            <div id="marketStatus" class="status-badge" style="border: 1px solid var(--accent);">MARKET SCANNING...</div>
+            <div id="clock" style="font-family: var(--font-data); font-weight: bold; color: var(--accent);">00:00:00</div>
+            
+            <!-- Dark/Light Mode -->
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="toggle-knob"></div>
+            </div>
+
+            <button class="btn btn-ghost" onclick="refreshAll()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </header>
+
+    <div class="ticker-wrap">
+        <div class="ticker-content" id="indexTicker">Establishing secure data uplink with NSE/BSE...</div>
+    </div>
+
+    <!-- Main View Grid -->
+    <main class="dashboard-grid">
+        <!-- 1. Portfolio Matrix -->
+        <div class="glass-card" style="grid-column: span 3;">
+            <div class="stat-label">Total Net Worth</div>
+            <div class="stat-val" id="portfolioBalance">₹0.00</div>
+            <div id="portfolioPnl" class="pos" style="font-weight: bold;">+₹0.00 (0.00%)</div>
+            <div style="margin-top: 15px; font-size: 0.75rem; color: var(--text-secondary);">
+                Active: <span id="activeCount" style="color:var(--text-primary)">0</span> | 
+                WR: <span id="winRate" style="color:var(--green)">0%</span>
+            </div>
+        </div>
+
+        <!-- 2. Execution Terminal -->
+        <div class="glass-card" style="grid-column: span 6;">
+            <div class="stat-label">Holographic Order Interface</div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <input type="text" id="tradeSymbol" class="btn btn-ghost" value="NIFTY" style="flex: 2; text-align: left; padding-left: 15px; cursor: text; color: #fff;">
+                <input type="number" id="tradeQty" class="btn btn-ghost" value="50" style="flex: 1; cursor: text; color: #fff;">
+                <button class="btn btn-buy" onclick="placeOrder('BUY')">LONG ▲</button>
+                <button class="btn btn-sell" onclick="placeOrder('SELL')">SHORT ▼</button>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 10px;">
+                <button class="btn btn-ghost" onclick="closeAllPositions()" style="flex: 1; border-color: var(--red); color: var(--red);">PANIC EXIT</button>
+                <button class="btn btn-ghost" onclick="syncBrokerOrders()" style="flex: 1;"><i class="fas fa-university"></i> BROKER SYNC</button>
+            </div>
+        </div>
+
+        <!-- 3. Bot Control -->
+        <div class="glass-card" style="grid-column: span 3;">
+            <div class="stat-label">AI Neural Status</div>
+            <div id="botStatusBadge" class="stat-val" style="font-size: 1.1rem; color: var(--red);">● DISCONNECTED</div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="btn btn-buy" onclick="controlBot('start')" style="flex: 1; padding: 6px;">START</button>
+                <button class="btn btn-sell" onclick="controlBot('stop')" style="flex: 1; padding: 6px;">STOP</button>
+            </div>
+        </div>
+
+        <!-- 4. Open Positions Table -->
+        <div class="glass-card" style="grid-column: span 12;">
+            <div class="stat-label">Active Data Streams (Positions)</div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Stream ID</th><th>Type</th><th>Qty</th><th>Entry</th><th>LTP</th><th>P&L</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positionsTableBody">
+                        <tr><td colspan="7">Scanning data layers for active trades...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Navigation Tabs -->
+    <nav class="tab-bar">
+        <button class="tab-btn active" data-tab="optionchain">OPTION CHAIN (GREEKS)</button>
+        <button class="tab-btn" data-tab="analysis">PERFORMANCE ANALYSIS</button>
+        <button class="tab-btn" data-tab="paper">PAPER SUITE</button>
+        <button class="tab-btn" data-tab="logs">SYSTEM LOGS</button>
+        <button class="tab-btn" data-tab="config">UPLINK CONFIG</button>
+    </nav>
+
+    <!-- TAB CONTENT: OPTION CHAIN -->
+    <div id="optionchain" class="tab-content active">
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px;">
+                    <select id="ocSymbol" class="btn btn-ghost" onchange="loadOptionChain()" style="background: #000;">
+                        <option value="NIFTY">NIFTY 50</option>
+                        <option value="BANKNIFTY">BANK NIFTY</option>
+                        <option value="FINNIFTY">FIN NIFTY</option>
+                    </select>
+                    <div id="spotPrice" class="btn btn-ghost" style="border-color: var(--green); color: var(--green);">SPOT: 0.00</div>
+                </div>
+                <div class="stat-label">Greeks Heatmap Engine V3</div>
+            </div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr style="background: rgba(0,242,255,0.05);">
+                            <th colspan="5">CALLS (CE)</th>
+                            <th rowspan="2">STRIKE</th>
+                            <th colspan="5">PUTS (PE)</th>
+                        </tr>
+                        <tr>
+                            <th>Delta</th><th>Theta</th><th>Vega</th><th>IV</th><th>LTP</th>
+                            <th>LTP</th><th>IV</th><th>Vega</th><th>Theta</th><th>Delta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="optionChainBody">
+                        <!-- Greeks data injected here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB CONTENT: PERFORMANCE ANALYSIS -->
+    <div id="analysis" class="tab-content">
+        <div class="dashboard-grid" style="padding: 0;">
+            <div class="glass-card" style="grid-column: span 8;">
+                <div class="stat-label">Combined Equity Curve</div>
+                <canvas id="equityChart" height="150"></canvas>
+            </div>
+            <div class="glass-card" style="grid-column: span 4;">
+                <div class="stat-label">Auto vs Manual Breakdown</div>
+                <div style="margin-top: 20px;">
+                    <div class="stat-label">BOT REVENUE</div>
+                    <div id="autoPnl" class="stat-val pos">₹0.00</div>
+                    <div style="height: 20px;"></div>
+                    <div class="stat-label">MANUAL REVENUE</div>
+                    <div id="manualPnl" class="stat-val neg">₹0.00</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB CONTENT: SYSTEM LOGS -->
+    <div id="logs" class="tab-content">
+        <div class="glass-card">
+            <div class="stat-label">Neural Core Logs (Real-time)</div>
+            <div id="logWindow" class="log-terminal">
+                [SYSTEM] Initializing Matrix Pro neural core...
+                [SYSTEM] Establishing socket connection to NSE servers...
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB CONTENT: CONFIG -->
+    <div id="config" class="tab-content">
+        <div class="glass-card">
+            <div class="stat-label">Uplink Configuration Parameters</div>
+            <div class="dashboard-grid" style="padding: 20px 0;">
+                <div style="grid-column: span 4;">
+                    <label class="stat-label">Trading Engine Mode</label>
+                    <select id="cfg_mode" class="btn btn-ghost" style="width: 100%; background: #000; margin-top: 8px;">
+                        <option value="BOTH">BOTH (EQUITY + F&O)</option>
+                        <option value="EQUITY">EQUITY ONLY</option>
+                        <option value="FNO">FNO ONLY</option>
+                    </select>
+                </div>
+                <div style="grid-column: span 4;">
+                    <label class="stat-label">Base Capital (₹)</label>
+                    <input type="number" id="cfg_capital" class="btn btn-ghost" value="100000" style="width: 100%; margin-top: 8px; color: #fff;">
+                </div>
+                <div style="grid-column: span 4;">
+                    <label class="stat-label">Risk Percentage (%)</label>
+                    <input type="number" id="cfg_risk" class="btn btn-ghost" value="1.5" style="width: 100%; margin-top: 8px; color: #fff;">
+                </div>
+            </div>
+            <button class="btn btn-buy" onclick="saveAllConfig()">SAVE TO CORE MEMORY</button>
+        </div>
+    </div>
+
+    <script>
+        /** 
+         * 1. THEME & VISUALS ENGINE 
+         **/
+        function init3D() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true, transparent: true, opacity: 0.15 });
+            const torus = new THREE.Mesh(geometry, material);
+            scene.add(torus);
+            camera.position.z = 30;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torus.rotation.x += 0.005; torus.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            particlesJS("particles-js", {
+                "particles": { "number": { "value": 60 }, "color": { "value": "#00f2ff" }, "line_linked": { "enable": true, "opacity": 0.1 } }
+            });
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            html.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+        }
+
+        /** 
+         * 2. DATA FETCHERS (ALL INTEGRATED)
+         **/
+        let equityChart = null;
+
+        async function refreshAll() {
+            updateClock();
+            await Promise.all([
+                loadMarketData(),
+                loadPortfolioSummary(),
+                loadPositions(),
+                loadAnalysisData(),
+                loadBotStatus()
+            ]);
+            // If option chain is visible, refresh it
+            if(document.getElementById('optionchain').classList.contains('active')) loadOptionChain();
+        }
+
+        async function loadMarketData() {
+            try {
+                const res = await fetch('/api/market');
+                const data = await res.json();
+                document.getElementById('indexTicker').innerHTML = Object.entries(data).map(([n, i]) => `
+                    <span style="margin-right: 40px;">
+                        <b style="color:var(--accent)">${n}</b>: ₹${i.ltp.toLocaleString()} 
+                        <span class="${i.change_percent >= 0 ? 'pos' : 'neg'}">${i.change_percent.toFixed(2)}%</span>
+                    </span>
+                `).join(' ');
+                
+                const isOpen = (new Date().getHours() >= 9 && new Date().getHours() < 15);
+                const status = document.getElementById('marketStatus');
+                status.innerText = isOpen ? '● MARKET LIVE' : '● MARKET CLOSED';
+                status.style.color = isOpen ? 'var(--green)' : 'var(--red)';
+                status.style.borderColor = isOpen ? 'var(--green)' : 'var(--red)';
+            } catch(e) { console.warn("Market Fetch Error"); }
+        }
+
+        async function loadPortfolioSummary() {
+            try {
+                const res = await fetch('/api/paper/summary');
+                const data = await res.json();
+                new countUp.CountUp('portfolioBalance', data.current_balance || 0, { prefix: '₹' }).start();
+                const pnlEl = document.getElementById('portfolioPnl');
+                pnlEl.innerText = `${data.total_pnl >= 0 ? '+' : ''}₹${(data.total_pnl || 0).toLocaleString()} (${(data.win_rate || 0).toFixed(2)}%)`;
+                pnlEl.className = data.total_pnl >= 0 ? 'pos' : 'neg';
+                document.getElementById('winRate').innerText = (data.win_rate || 0).toFixed(1) + '%';
+                document.getElementById('activeCount').innerText = data.active_positions || 0;
+            } catch(e) {}
+        }
+
+        async function loadPositions() {
+            try {
+                const res = await fetch('/api/paper/positions');
+                const pos = await res.json();
+                const tbody = document.getElementById('positionsTableBody');
+                tbody.innerHTML = pos.map(p => `
+                    <tr>
+                        <td><b>${p.symbol}</b></td>
+                        <td class="${p.position_type === 'LONG' ? 'pos' : 'neg'}">${p.position_type}</td>
+                        <td>${p.quantity}</td>
+                        <td>₹${p.entry_price.toFixed(2)}</td>
+                        <td>₹${(p.current_price || p.entry_price).toFixed(2)}</td>
+                        <td class="${p.pnl >= 0 ? 'pos' : 'neg'}">₹${p.pnl.toFixed(2)}</td>
+                        <td><button class="btn btn-sell" style="padding: 4px 10px;" onclick="closePosition('${p.symbol}')">EXIT</button></td>
+                    </tr>
+                `).join('') || '<tr><td colspan="7">No active neural streams found.</td></tr>';
+            } catch(e) {}
+        }
+
+        /** 
+         * 3. OPTION CHAIN & GREEKS ENGINE 
+         **/
+        async function loadOptionChain() {
+            const sym = document.getElementById('ocSymbol').value;
+            try {
+                const res = await fetch(`/api/option-chain?underlying=${sym}`);
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('spotPrice').innerText = `SPOT: ₹${data.spot_price}`;
+                    const tbody = document.getElementById('optionChainBody');
+                    tbody.innerHTML = data.strikes.map(s => `
+                        <tr class="${s.strike === data.atm_strike ? 'atm-highlight' : ''}">
+                            <td class="pos">${s.ce.delta.toFixed(2)}</td><td>${s.ce.theta.toFixed(2)}</td>
+                            <td>${s.ce.vega.toFixed(2)}</td><td>${s.ce.iv}%</td>
+                            <td style="color:var(--green)">₹${s.ce.ltp}</td>
+                            <td style="background: rgba(0,242,255,0.05); font-weight: bold;">${s.strike}</td>
+                            <td style="color:var(--red)">₹${s.pe.ltp}</td><td>${s.pe.iv}%</td>
+                            <td>${s.pe.vega.toFixed(2)}</td><td>${s.pe.theta.toFixed(2)}</td>
+                            <td class="neg">${s.pe.delta.toFixed(2)}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch(e) {}
+        }
+
+        /** 
+         * 4. PERFORMANCE & CHART 
+         **/
+        async function loadAnalysisData() {
+            try {
+                const res = await fetch('/api/trades/combined');
+                const data = await res.json();
+                if(data.status === 'success') {
+                    document.getElementById('autoPnl').innerText = '₹' + data.auto_stats.total_pnl.toFixed(2);
+                    document.getElementById('manualPnl').innerText = '₹' + data.manual_stats.total_pnl.toFixed(2);
+                    initEquityChart(data.all_trades);
+                }
+            } catch(e) {}
+        }
+
+        function initEquityChart(trades) {
+            const ctx = document.getElementById('equityChart').getContext('2d');
+            let balance = 0;
+            const dataPoints = trades.reverse().map(t => { balance += t.pnl; return balance; });
+            
+            if(equityChart) equityChart.destroy();
+            equityChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dataPoints.map((_, i) => i),
+                    datasets: [{
+                        label: 'Portfolio Equity',
+                        data: dataPoints,
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                        fill: true, tension: 0.4
+                    }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { display: false } } }
+            });
+        }
+
+        /** 
+         * 5. BOT & SYSTEM CORE 
+         **/
+        async function controlBot(action) {
+            try {
+                const res = await fetch(`/api/bot/${action}`, { method: 'POST' });
+                const data = await res.json();
+                showToast(`NEURAL CORE: ${data.message.toUpperCase()}`);
+                loadBotStatus();
+            } catch(e) {}
+        }
+
+        async function loadBotStatus() {
+            try {
+                const res = await fetch('/api/bot/status');
+                const data = await res.json();
+                const badge = document.getElementById('botStatusBadge');
+                badge.innerText = data.running ? '● CORE INITIALIZED' : '● CORE TERMINATED';
+                badge.style.color = data.running ? 'var(--green)' : 'var(--red)';
+                loadLogs();
+            } catch(e) {}
+        }
+
+        async function loadLogs() {
+            try {
+                const res = await fetch('/api/bot/logs');
+                const data = await res.json();
+                const logWin = document.getElementById('logWindow');
+                logWin.innerHTML = (data.logs || []).map(l => `<div>${l}</div>`).join('');
+                logWin.scrollTop = logWin.scrollHeight;
+            } catch(e) {}
+        }
+
+        async function saveAllConfig() {
+            const cfg = {
+                BASE_CAPITAL: document.getElementById('cfg_capital').value,
+                BASE_CAPITAL_RISK_PERCENT: document.getElementById('cfg_risk').value / 100,
+                TRADING_MODE: document.getElementById('cfg_mode').value
+            };
+            await fetch('/api/config/save', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(cfg) 
+            });
+            showToast("UPLINK SUCCESSFUL: Memory Buffer Updated");
+        }
+
+        /** 
+         * 6. UTILITIES 
+         **/
+        function updateClock() {
+            document.getElementById('clock').innerText = new Date().toLocaleTimeString('en-IN');
+        }
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.className = 'glass-card';
+            t.style.position = 'fixed'; t.style.bottom = '20px'; t.style.right = '20px';
+            t.style.padding = '12px 24px'; t.style.zIndex = '9999'; t.style.borderColor = 'var(--accent)';
+            t.innerHTML = `<b style="color:var(--accent)">MATRIX:</b> ${msg}`;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 4000);
+        }
+
+        // Tab Switching Engine
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        window.onload = () => {
+            init3D();
+            refreshAll();
+            setInterval(refreshAll, 10000); // 10-second pulse
+        };
+    </script>
+</body>
+</html>

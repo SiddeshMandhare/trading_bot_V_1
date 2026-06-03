@@ -1,0 +1,3771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AlgoTrader Pro — Consolidated Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #0f1420;
+    --bg-card: #151a2a;
+    --border: #2a2f45;
+    --border-light: #353d5a;
+    --text-primary: #e8ecf2;
+    --text-secondary: #8a92b0;
+    --text-muted: #5a6380;
+    --green: #00e5a0;
+    --green-dark: #00b884;
+    --red: #ff4757;
+    --red-dark: #e63e4e;
+    --blue: #3b82f6;
+    --yellow: #f59e0b;
+    --purple: #a855f7;
+    --font-sans: 'Inter', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* Header */
+.header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.header-controls { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+
+.market-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(0, 229, 160, 0.1);
+    border: 1px solid var(--green);
+    color: var(--green);
+}
+
+.market-status.closed { border-color: var(--red); color: var(--red); background: rgba(255, 71, 87, 0.1); }
+
+.countdown, .clock { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-secondary); }
+
+.refresh-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+}
+.refresh-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* Index Bar */
+.index-bar {
+    display: flex;
+    gap: 10px;
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.index-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    min-width: 100px;
+}
+.index-name { font-size: 0.65rem; color: var(--text-secondary); }
+.index-price { font-family: var(--font-mono); font-size: 0.9rem; font-weight: 600; margin-top: 3px; }
+.index-change { font-size: 0.65rem; margin-top: 2px; }
+.index-change.up { color: var(--green); }
+.index-change.down { color: var(--red); }
+
+/* Consolidated Tabs - 8 tabs */
+.tabs {
+    display: flex;
+    gap: 2px;
+    padding: 10px 20px 0;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    padding: 8px 16px;
+    color: var(--text-secondary);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* Main Content */
+.main { padding: 15px 20px; flex: 1; }
+.panel { display: none; }
+.panel.active { display: block; }
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+
+.stat-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+.stat-label { font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; }
+.stat-value { font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; margin-top: 6px; }
+.stat-value.positive { color: var(--green); }
+.stat-value.negative { color: var(--red); }
+
+/* Section */
+.section {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.section-title { font-weight: 600; font-size: 0.9rem; }
+
+.badge {
+    font-size: 0.65rem;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-weight: 500;
+}
+.badge-green { background: rgba(0, 229, 160, 0.15); color: var(--green); }
+.badge-red { background: rgba(255, 71, 87, 0.15); color: var(--red); }
+.badge-blue { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+.badge-yellow { background: rgba(245, 158, 11, 0.15); color: var(--yellow); }
+.live-badge { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+/* Tables */
+.table-container { overflow-x: auto; }
+.oc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.7rem;
+    min-width: 800px;
+}
+.oc-table th {
+    padding: 6px 4px;
+    text-align: center;
+    background: rgba(0, 229, 160, 0.05);
+    color: var(--text-secondary);
+    font-weight: 500;
+    white-space: nowrap;
+}
+.oc-table td {
+    padding: 5px 4px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-light);
+}
+.atm-row td { background: rgba(0, 229, 160, 0.08); }
+.signal-bullish { color: var(--green); font-weight: 600; }
+.signal-bearish { color: var(--red); font-weight: 600; }
+
+/* Strategy Cards */
+.strategy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+.strategy-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    border-left: 3px solid var(--green);
+}
+.strategy-name { font-weight: 600; margin-bottom: 8px; }
+.strategy-stats { display: flex; justify-content: space-between; font-size: 0.7rem; margin-top: 4px; color: var(--text-secondary); }
+
+/* Option Chain Table */
+.oc-table th, .oc-table td { text-align: center; }
+.positive { color: var(--green); }
+.negative { color: var(--red); }
+
+/* Form Elements */
+.form-group { margin-bottom: 12px; }
+.form-group label { display: block; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; }
+.form-group input, .form-group select {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+}
+.btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.btn {
+    padding: 7px 15px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+.btn-buy { background: var(--green); color: #000; }
+.btn-sell { background: var(--red); color: #fff; }
+.btn-danger { background: transparent; border: 1px solid var(--red); color: var(--red); }
+.btn-primary { background: var(--blue); color: #fff; }
+
+.watchlist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+.watchlist-tag {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    cursor: pointer;
+}
+.watchlist-tag:hover { border-color: var(--blue); color: var(--blue); }
+
+.command-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+}
+.command-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    text-align: center;
+}
+.command-name { font-family: var(--font-mono); font-size: 0.75rem; font-weight: 600; color: var(--green); }
+.command-desc { font-size: 0.65rem; color: var(--text-secondary); margin-top: 3px; }
+
+/* Greeks Controls */
+.greeks-controls {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.greeks-btn {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.7rem;
+}
+.greeks-btn.active { background: var(--purple); border-color: var(--purple); color: white; }
+
+/* Strike Selector */
+.strike-selector { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+.strike-chip {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+.strike-chip:hover { border-color: var(--blue); }
+.strike-chip.selected { background: var(--yellow); border-color: var(--yellow); color: var(--bg-primary); }
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 15px;
+}
+.calc-result {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+}
+.calc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+/* Alerts Feed */
+.alerts-feed { max-height: 300px; overflow-y: auto; }
+.alert-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 6px;
+}
+.alert-item.bullish { border-left: 3px solid var(--green); }
+.alert-item.bearish { border-left: 3px solid var(--red); }
+
+/* P&L Chart */
+.pnl-chart {
+    width: 100%;
+    height: 150px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    padding: 10px;
+}
+.pnl-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    transition: all 0.3s;
+}
+.pnl-stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+}
+
+/* Telegram */
+.tg-config {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+.tg-config input {
+    flex: 1;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: var(--text-primary);
+    font-size: 0.75rem;
+}
+.tg-feed { max-height: 250px; overflow-y: auto; }
+.tg-message {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px;
+    margin-bottom: 6px;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+}
+.toast-success { background: rgba(0, 229, 160, 0.2); border: 1px solid var(--green); color: var(--green); }
+.toast-error { background: rgba(255, 71, 87, 0.2); border: 1px solid var(--red); color: var(--red); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.empty-state { text-align: center; padding: 30px; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+    .header { padding: 8px 12px; }
+    .tabs { padding: 8px 12px 0; }
+    .main { padding: 12px; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .calc-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+    <header class="header">
+        <div class="logo">⚡ AlgoTrader Pro</div>
+        <div class="header-controls">
+            <div class="market-status" id="marketStatus">● CHECKING...</div>
+            <div class="countdown" id="countdown">⟳ 30s</div>
+            <button class="refresh-btn" onclick="refreshAll()">↻ Refresh</button>
+            <div class="clock" id="clock">--:--:--</div>
+        </div>
+    </header>
+
+    <div class="index-bar" id="indexBar"></div>
+
+    <!-- 8 CONSOLIDATED TABS -->
+    <nav class="tabs">
+        <button class="tab active" data-tab="overview">📊 Overview</button>
+        <button class="tab" data-tab="trading">📈 Trading</button>
+        <button class="tab" data-tab="optionchain">🔗 Option Chain</button>
+        <button class="tab" data-tab="backtest">📊 Backtest</button>
+        <button class="tab" data-tab="paper">📝 Paper Trading</button>
+        <button class="tab" data-tab="optioncontrol">🎛️ Option Control</button>
+        <button class="tab" data-tab="config">⚙️ Config</button>
+        <button class="tab" data-tab="logs">📋 Logs</button>
+        <button class="tab" data-tab="commands">🤖 Commands</button>
+        <button class="tab" data-tab="botcontrol">🎮 Bot Control</button>
+    </nav>
+
+    <main class="main">
+        <!-- ============================================ -->
+        <!-- TAB 1: OVERVIEW (Merges: Overview + Trades + Positions + P&L Curve) -->
+        <!-- ============================================ -->
+        <div class="panel active" id="panel-overview">
+            <div class="stats-grid" id="statsGrid"></div>
+
+
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📊 Bot Trade History (Local Database)</span>
+                    <button class="refresh-btn" onclick="loadBotTrades()">⟳ Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Symbol</th>
+                                <th>Strategy</th>
+                                <th>Entry Price</th>
+                                <th>Exit Price</th>
+                                <th>P&L</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="botTradesBody">
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📊 Consolidated Positions (By Symbol)</span>
+                    <button class="refresh-btn" onclick="loadConsolidatedPositions()">⟳ Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>Symbol</th>
+                                <th>Qty</th>
+                                <th>Buy Avg Price</th>
+                                <th>Sell Avg Price</th>
+                                <th>P&L</th>
+                            </tr>
+                        </thead>
+                        <tbody id="consolidatedBody">
+                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Combined Trade Analysis Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📊 Trade Analysis (Auto vs Manual)</span>
+                    <button class="refresh-btn" onclick="loadCombinedAnalysis()">⟳ Refresh</button>
+                </div>
+                
+                <!-- Comparison Stats -->
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 15px;">
+                    <div class="stat-card">
+                        <div class="stat-label">🤖 AUTO TRADES</div>
+                        <div class="stat-value" id="autoTradeCount">0</div>
+                        <div class="stat-label">P&L: <span id="autoPnl">₹0</span></div>
+                        <div class="stat-label">Win Rate: <span id="autoWinRate">0%</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">✋ MANUAL TRADES</div>
+                        <div class="stat-value" id="manualTradeCount">0</div>
+                        <div class="stat-label">P&L: <span id="manualPnl">₹0</span></div>
+                        <div class="stat-label">Win Rate: <span id="manualWinRate">0%</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">📈 OVERALL</div>
+                        <div class="stat-value" id="overallTradeCount">0</div>
+                        <div class="stat-label">P&L: <span id="overallPnl">₹0</span></div>
+                        <div class="stat-label">Win Rate: <span id="overallWinRate">0%</span></div>
+                    </div>
+                </div>
+                
+                <!-- Strategy Performance Table -->
+                <div class="section-header" style="margin-top: 15px;">
+                    <span class="section-title">🎯 Strategy Performance (Auto vs Manual)</span>
+                </div>
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>Strategy</th>
+                                <th>Type</th>
+                                <th>Trades</th>
+                                <th>Total P&L</th>
+                                <th>Win Rate</th>
+                            </tr>
+                        </thead>
+                        <tbody id="strategyAnalysisBody">
+                            <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Combined Trade History Table -->
+                <div class="section-header" style="margin-top: 15px;">
+                    <span class="section-title">📋 Complete Trade History (Auto + Manual)</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-sm" onclick="filterTrades('all')">All</button>
+                        <button class="btn-sm" onclick="filterTrades('AUTO')">Auto Only</button>
+                        <button class="btn-sm" onclick="filterTrades('MANUAL')">Manual Only</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Time</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Strategy</th>
+                                <th>Entry</th>
+                                <th>Exit</th>
+                                <th>Qty</th>
+                                <th>P&L</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="combinedTradesBody">
+                            <tr><td colspan="10" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <div class="section-header" style="margin-top: 15px;">
+                <span class="section-title">🔄 Sync Broker Orders to Local DB</span>
+                <button class="btn btn-primary" onclick="syncBrokerOrders()" style="padding: 5px 15px;">⟳ Sync Now</button>
+            </div>
+
+
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🏦 Broker Order History (Dhan)</span>
+                    <button class="refresh-btn" onclick="loadBrokerOrders()">⟳ Refresh</button>
+                </div>
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Qty</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Order Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="brokerOrdersBody">
+                            <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            
+            <!-- ============ ADD THIS ENTIRE BLOCK HERE ============ -->
+            <div class="section" style="margin-bottom: 20px;">
+                <div class="section-header">
+                    <span class="section-title">🎛️ Trading Mode Controller</span>
+                    <span id="tradingModeBadge" class="badge badge-blue">Loading...</span>
+                </div>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mode-btn" data-mode="EQUITY_ONLY" onclick="setTradingMode('EQUITY_ONLY')" style="padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; background: #1a1a2e; border: 1px solid #00ff88; color: #00ff88;">
+                            📊 EQUITY ONLY
+                        </button>
+                        <button class="mode-btn" data-mode="FNO_ONLY" onclick="setTradingMode('FNO_ONLY')" style="padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; background: #1a1a2e; border: 1px solid #ffaa00; color: #ffaa00;">
+                            🎯 F&O ONLY
+                        </button>
+                        <button class="mode-btn" data-mode="BOTH" onclick="setTradingMode('BOTH')" style="padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; background: #1a1a2e; border: 1px solid #a855f7; color: #a855f7;">
+                            🔄 BOTH
+                        </button>
+                    </div>
+                    <div id="modeStatus" style="font-size: 0.8rem; padding: 5px 12px; background: rgba(0,0,0,0.3); border-radius: 20px;">
+                        Current: <span id="currentMode">--</span>
+                    </div>
+                </div>
+                <div id="modeDescription" style="margin-top: 12px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.75rem; color: #aaa;">
+                    Select a mode to change trading behavior
+                </div>
+            </div>
+            <!-- ============ END OF TRADING MODE CONTROL ============ -->
+
+            <div class="section">
+                <div class="section-header"><span class="section-title">📈 P&L Curve</span><span class="badge badge-blue">Last 20 trades</span></div>
+                <div class="pnl-chart" id="pnlChart"></div>
+                <div class="pnl-stats-row" id="pnlStats"></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">🎯 Strategy Performance</span></div>
+                <div class="strategy-grid" id="strategyGrid"></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">📋 Recent Trades</span></div>
+                <div class="table-container"><table class="oc-table"><thead><tr><th>ID</th><th>Symbol</th><th>Type</th><th>Entry</th><th>Exit</th><th>Qty</th><th>P&L</th><th>Status</th></tr></thead><tbody id="tradesBody"></tbody></table></div>
+            </div>
+            
+        </div>
+
+
+
+        <!-- Add this panel -->
+        <div class="panel" id="panel-botcontrol">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🤖 Bot Control Panel</span>
+                    <span id="botStatusBadge" class="badge badge-red">● STOPPED</span>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 20px;">
+                    <div class="stat-card">
+                        <div class="stat-label">BOT STATUS</div>
+                        <div class="stat-value" id="botRunningStatus">STOPPED</div>
+                        <div id="botPid" style="font-size: 0.7rem; color: #888;">PID: --</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">UPTIME</div>
+                        <div class="stat-value" id="botUptime">0h 0m</div>
+                        <div style="font-size: 0.7rem; color: #888;">Since last start</div>
+                    </div>
+                </div>
+                
+                <!-- Control Buttons -->
+                <div class="btn-group" style="justify-content: center; margin-bottom: 20px;">
+                    <button id="startBotBtn" class="btn-buy" onclick="controlBot('start')" style="padding: 12px 30px; font-size: 1rem;">
+                        🟢 START BOT
+                    </button>
+                    <button id="stopBotBtn" class="btn-danger" onclick="controlBot('stop')" style="padding: 12px 30px; font-size: 1rem;">
+                        🔴 STOP BOT
+                    </button>
+                    <button id="restartBotBtn" class="btn" onclick="controlBot('restart')" style="background: var(--blue); padding: 12px 30px; font-size: 1rem;">
+                        🔄 RESTART
+                    </button>
+                </div>
+                
+                <!-- Warning/Info -->
+                <div id="botControlMessage" style="margin: 15px 0; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 8px; text-align: center;">
+                    Click START to begin automated trading
+                </div>
+                
+                <!-- Bot Logs -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <span class="section-title">📋 Bot Output Logs</span>
+                    <button class="refresh-btn" onclick="loadBotLogs()">⟳ Refresh Logs</button>
+                </div>
+                <div id="botLogs" style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.7rem; max-height: 400px; overflow-y: auto;">
+                    <div class="empty-state">No logs available. Start the bot to see output.</div>
+                </div>
+                
+                <!-- Configuration Summary -->
+                <div class="section-header" style="margin-top: 20px;">
+                    <span class="section-title">⚙️ Bot Configuration</span>
+                </div>
+                <div class="stats-grid" id="botConfigGrid"></div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 2: TRADING (Merges: Manual Trade + Bot + Watchlist) -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-trading">
+            <div class="section">
+                <div class="section-header"><span class="section-title">✍ Manual Order Entry</span><span class="badge badge-green">Live</span></div>
+                <div class="stats-grid" style="margin-bottom: 20px; grid-template-columns: repeat(3,1fr);">
+                    <div class="stat-card"><div class="stat-label">Capital</div><div class="stat-value" id="availableCapital">₹10,000</div></div>
+                    <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value" id="tradingOpenCount">0</div></div>
+                    <div class="stat-card"><div class="stat-label">Active Strategies</div><div class="stat-value">6</div></div>
+                </div>
+                <div class="form-group"><label>📊 Symbol</label><input type="text" id="tradeSymbol" placeholder="e.g., NIFTY, RELIANCE" class="form-control"></div>
+                <div class="form-group"><label>📦 Quantity</label><input type="number" id="tradeQty" value="1" min="1" class="form-control"></div>
+                <div class="form-group"><label>💵 Price (0 = Market)</label><input type="number" id="tradePrice" value="0" step="0.05" class="form-control"></div>
+                <div class="btn-group"><button class="btn btn-buy" onclick="placeOrder('BUY')">▲ BUY / LONG</button><button class="btn btn-sell" onclick="placeOrder('SELL')">▼ SELL / SHORT</button><button class="btn btn-danger" onclick="closeAllPositions()">Close All</button></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">📋 Watchlist</span></div>
+                <div class="watchlist" id="watchlist"></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">🤖 Bot Commands</span></div>
+                <div class="command-grid" id="commandGrid"></div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 3: OPTION CHAIN (Merges: Option Chain + Greeks + Straddle + OI Alerts) -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-optionchain">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🔗 Option Chain</span>
+                    <div class="oc-controls" style="display:flex; gap:8px;">
+                        <select id="ocUnderlying" class="form-control" style="width:100px;"><option value="NIFTY">NIFTY</option><option value="BANKNIFTY">BANKNIFTY</option><option value="FINNIFTY">FINNIFTY</option><option value="SENSEX">SENSEX</option></select>
+                        <select id="ocExpiry" class="form-control" style="width:120px;"><option value="0">Current Expiry</option><option value="2">Next Expiry</option></select>
+                        <button class="btn btn-primary" onclick="loadOptionChain()">⟳ Load</button>
+                        <span id="liveBadge" class="badge badge-blue">● SIM</span>
+                    </div>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(6,1fr); margin-bottom:15px;" id="ocMeta"></div>
+                <div class="table-container">
+                    <table class="oc-table"><thead><tr style="background:rgba(0,229,160,0.05);"><th colspan="9" style="color:var(--green);">CALLS (CE)</th><th>STRIKE</th><th colspan="9" style="color:var(--red);">PUTS (PE)</th></tr>
+                    <tr><th>Signal</th><th>Vega</th><th>Gamma</th><th>Theta</th><th>Delta</th><th>IV%</th><th>OI Chg</th><th>OI</th><th>LTP</th><th>Price</th><th>LTP</th><th>OI</th><th>OI Chg</th><th>IV%</th><th>Delta</th><th>Theta</th><th>Gamma</th><th>Vega</th><th>Signal</th></tr></thead>
+                    <tbody id="ocBody"><tr><td colspan="19" class="empty-state">Click Load to fetch data</td></tr></tbody></table>
+                </div>
+            </div>
+            
+            <!-- Greeks Section -->
+            <div class="section">
+                <div class="section-header"><span class="section-title">🌡 Greeks Heatmap</span></div>
+                <div class="greeks-controls">
+                    <button class="greeks-btn active" data-metric="delta" onclick="setGreeksMetric('delta')">Delta</button>
+                    <button class="greeks-btn" data-metric="gamma" onclick="setGreeksMetric('gamma')">Gamma</button>
+                    <button class="greeks-btn" data-metric="theta" onclick="setGreeksMetric('theta')">Theta</button>
+                    <button class="greeks-btn" data-metric="vega" onclick="setGreeksMetric('vega')">Vega</button>
+                    <button class="greeks-btn" data-metric="iv" onclick="setGreeksMetric('iv')">IV%</button>
+                    <button class="greeks-btn" data-metric="oi" onclick="setGreeksMetric('oi')">OI</button>
+                </div>
+                <div class="table-container"><table class="oc-table"><thead><tr><th>Strike</th><th>CE Value</th><th>CE Heat</th><th>ATM</th><th>PE Heat</th><th>PE Value</th></tr></thead><tbody id="greeksBody"><tr><td colspan="6" class="empty-state">Load Option Chain first</td></tr></tbody></table></div>
+            </div>
+            
+            <!-- Straddle Calculator -->
+            <div class="section">
+                <div class="section-header"><span class="section-title">⚖ Straddle / Strangle Calculator</span><button class="badge badge-yellow" onclick="toggleStraddleType()" style="cursor:pointer;">Switch to Strangle</button></div>
+                <div id="strategyType" style="margin-bottom:8px; color:var(--yellow);">Current: STRADDLE</div>
+                <div class="strike-selector" id="strikeSelector"></div>
+                <div id="calcResults" style="display:none;"><div class="calc-grid"><div class="calc-result"><div class="calc-row"><span>Strategy</span><span id="calcStrategy">—</span></div><div class="calc-row"><span>CE Strike</span><span id="calcCEStrike">—</span></div><div class="calc-row"><span>PE Strike</span><span id="calcPEStrike">—</span></div><div class="calc-row"><span>CE Premium</span><span id="calcCEPremium">—</span></div><div class="calc-row"><span>PE Premium</span><span id="calcPEPremium">—</span></div><div class="calc-row"><span>Total Premium</span><span id="calcTotalPremium">—</span></div></div><div class="calc-result"><div class="calc-row"><span>Upper Breakeven</span><span id="calcUBE">—</span></div><div class="calc-row"><span>Lower Breakeven</span><span id="calcLBE">—</span></div><div class="calc-row"><span>Max Profit</span><span>Unlimited</span></div><div class="calc-row"><span>Max Loss</span><span id="calcMaxLoss">—</span></div><div class="calc-row"><span>Profit Zone</span><span id="calcProfitZone">—</span></div></div></div></div>
+            </div>
+            
+            <!-- OI Alerts -->
+            <div class="section">
+                <div class="section-header"><span class="section-title">🔔 OI Buildup Alerts</span><button class="badge badge-yellow" onclick="scanOIAlerts()" style="cursor:pointer;">⟳ Scan Now</button></div>
+                <div style="display:flex; gap:8px; margin-bottom:12px;"><label style="color:var(--text-secondary);">Min OI Change:</label><input type="number" id="oiThreshold" value="500" style="width:80px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:4px; padding:3px 6px; color:white;"></div>
+                <div id="alertsFeed" class="alerts-feed"></div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 4: BACKTEST - ENHANCED WITH ALL STRATEGIES -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-backtest">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📈 Backtest Engine</span>
+                    <span class="badge badge-green" id="backtestStatus">Ready</span>
+                </div>
+                
+                <!-- Single Strategy Backtest -->
+                <div style="margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 10px; color: var(--green);">🎯 Single Strategy Backtest</h3>
+                    <div class="stats-grid" style="grid-template-columns: repeat(6,1fr); margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label>📊 Symbol</label>
+                            <select id="backtestSymbol">
+                                <option value="NIFTY">NIFTY 50</option>
+                                <option value="BANKNIFTY">BANKNIFTY</option>
+                                <option value="FINNIFTY">FINNIFTY</option>
+                                <option value="SENSEX">SENSEX</option>
+                                <option value="RELIANCE">RELIANCE</option>
+                                <option value="TCS">TCS</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>🎯 Strategy</label>
+                            <select id="backtestStrategy">
+                                <option value="EMA_RSI">📈 EMA/RSI Strategy</option>
+                                <option value="MACD_Bollinger">📊 MACD + Bollinger Bands</option>
+                                <option value="RSI_50_Crossover">⚡ RSI 50 Crossover</option>
+                                <option value="VWAP_Reversion">🔄 VWAP Mean Reversion</option>
+                                <option value="MA_Crossover_50_200">📉 MA Crossover (50/200)</option>
+                                <option value="ORB_30min">🎯 Opening Range Breakout</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>📅 Start Date</label>
+                            <input type="date" id="backtestStart" value="2024-01-01">
+                        </div>
+                        <div class="form-group">
+                            <label>📅 End Date</label>
+                            <input type="date" id="backtestEnd" value="2024-12-31">
+                        </div>
+                        <div class="form-group">
+                            <label>⏱️ Timeframe</label>
+                            <select id="backtestTimeframe">
+                                <option value="1">1 Minute</option>
+                                <option value="5">5 Minutes</option>
+                                <option value="15">15 Minutes</option>
+                                <option value="30">30 Minutes</option>
+                                <option value="60">1 Hour</option>
+                                <option value="DAY">Daily</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>💰 Initial Capital</label>
+                            <input type="number" id="backtestCapital" value="100000" step="10000">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-primary" onclick="runBacktest()">▶ Run Backtest</button>
+                        <button class="btn btn-buy" onclick="exportBacktestResults()">📥 Export CSV</button>
+                    </div>
+                </div>
+                
+                <!-- Compare Multiple Strategies -->
+                <div style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <h3 style="margin-bottom: 10px; color: var(--blue);">📊 Compare All Strategies</h3>
+                    <div class="stats-grid" style="grid-template-columns: repeat(3,1fr); margin-bottom: 15px;">
+                        <div class="form-group">
+                            <label>📊 Symbol</label>
+                            <select id="compareSymbol">
+                                <option value="NIFTY">NIFTY 50</option>
+                                <option value="BANKNIFTY">BANKNIFTY</option>
+                                <option value="FINNIFTY">FINNIFTY</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>📅 Start Date</label>
+                            <input type="date" id="compareStart" value="2024-01-01">
+                        </div>
+                        <div class="form-group">
+                            <label>📅 End Date</label>
+                            <input type="date" id="compareEnd" value="2024-12-31">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button class="btn btn-blue" onclick="compareAllStrategies()" style="background: var(--blue);">🔄 Compare All Strategies</button>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <!-- ADD THIS DEBUG SECTION RIGHT HERE -->
+            <div class="section" style="background: rgba(255, 200, 0, 0.1); border-color: var(--yellow);">
+                <div class="section-header">
+                    <span class="section-title">🔧 DEBUG PANEL</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn" onclick="testAPIConnection()" style="background: var(--yellow); color: #000;">🧪 Test API</button>
+                    <button class="btn" onclick="testBacktestCall()" style="background: var(--blue);">📡 Test Backtest</button>
+                </div>
+                <div id="debugOutput" style="margin-top: 10px; padding: 10px; background: var(--bg-secondary); border-radius: 6px; font-family: monospace; font-size: 0.7rem; max-height: 200px; overflow-y: auto;">
+                    Click a button to test...
+                </div>
+            </div>
+
+
+
+            
+            <!-- Results Section -->
+            <div class="section" id="backtestResults" style="display:none;">
+                <div class="section-header">
+                    <span class="section-title">📊 Backtest Results</span>
+                    <span id="dataSourceBadge" class="badge badge-blue">Data Source: --</span>
+                </div>
+                
+                <!-- Metrics Cards -->
+                <div class="stats-grid" id="backtestStats"></div>
+                
+                <!-- Strategy Comparison Table -->
+                <div id="comparisonTable" style="display:none;">
+                    <h3 style="margin: 15px 0 10px 0;">📊 Strategy Comparison</h3>
+                    <div class="table-container">
+                        <table class="oc-table" id="comparisonGrid">
+                            <thead>
+                                <tr>
+                                    <th>Strategy</th>
+                                    <th>Trades</th>
+                                    <th>Win Rate</th>
+                                    <th>Total P&L</th>
+                                    <th>Return %</th>
+                                    <th>Profit Factor</th>
+                                    <th>Sharpe</th>
+                                    <th>Max DD %</th>
+                                </tr>
+                            </thead>
+                            <tbody id="comparisonBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Equity Curve Chart -->
+                <div class="chart-container" style="margin: 15px 0;">
+                    <canvas id="backtestChart" style="max-height: 250px; width: 100%;"></canvas>
+                </div>
+                
+                <!-- Trades Table -->
+                <div class="table-container">
+                    <table class="oc-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Action</th>
+                                <th>Entry Price</th>
+                                <th>Exit Price</th>
+                                <th>Quantity</th>
+                                <th>P&L</th>
+                                <th>Exit Reason</th>
+                            </tr>
+                        </thead>
+                        <tbody id="backtestTradesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 5: PAPER TRADING WITH TOGGLE -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-paper">
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📝 Paper Trading Account</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button id="paperToggleBtn" onclick="togglePaperTrading()" style="padding:6px 15px; border-radius:6px; font-weight:bold; cursor:pointer;">
+                            🔄 LOADING...
+                        </button>
+                        <button class="btn-danger" onclick="resetPaperAccount()" style="padding:6px 15px;">Reset Account</button>
+                    </div>
+                </div>
+                <div id="paperModeWarning" style="margin-bottom: 15px; padding: 10px; border-radius: 8px; display: none;">
+                    <!-- Dynamic warning message -->
+                </div>
+                <div class="stats-grid" id="paperStats"></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">Place Order</span></div>
+                <div class="stats-grid" style="grid-template-columns: repeat(4,1fr);">
+                    <div class="form-group"><label>Symbol</label><select id="paperSymbol"><option>NIFTY</option><option>BANKNIFTY</option><option>RELIANCE</option><option>TCS</option></select></div>
+                    <div class="form-group"><label>Type</label><select id="paperType"><option value="BUY">BUY (LONG)</option><option value="SELL">SELL (SHORT)</option></select></div>
+                    <div class="form-group"><label>Qty</label><input type="number" id="paperQty" value="10"></div>
+                    <div class="form-group"><label>Price (0=Market)</label><input type="number" id="paperPrice" value="0" step="0.05"></div>
+                </div>
+                <div class="btn-group"><button class="btn btn-primary" onclick="placePaperOrder()">Place Paper Order</button></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">Active Positions</span></div>
+                <div class="table-container"><table class="oc-table"><thead><tr><th>Symbol</th><th>Type</th><th>Entry</th><th>Qty</th><th>Action</th></tr></thead><tbody id="paperPositionsBody"></tbody></table></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">Trade History</span></div>
+                <div class="table-container"><table class="oc-table"><thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Entry</th><th>Exit</th><th>P&L</th></tr></thead><tbody id="paperHistoryBody"></tbody></table></div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 6: OPTION CONTROL -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-optioncontrol">
+            <div class="section">
+                <div class="section-header"><span class="section-title">🎛️ Option Trading Control</span><span id="optionLiveStatus" class="badge live-badge" style="display:none;">● LIVE</span></div>
+                <div class="stats-grid" style="grid-template-columns: repeat(4,1fr); margin-bottom:20px;">
+                    <div class="stat-card"><div class="stat-label">OPTION TRADING</div><div class="stat-value" id="optionMasterStatus">--</div><button class="btn-buy" onclick="toggleOptionTrading()" style="margin-top:8px; padding:5px 12px;">Toggle</button></div>
+                    <div class="stat-card"><div class="stat-label">ACTIVE POSITIONS</div><div class="stat-value" id="optionPositionCount">0</div></div>
+                    <div class="stat-card"><div class="stat-label">OPTION P&L</div><div class="stat-value" id="optionTotalPnl">₹0</div></div>
+                    <div class="stat-card"><div class="stat-label">TODAY'S PREMIUM</div><div class="stat-value" id="optionTodayPremium">₹0</div></div>
+                </div>
+                <div class="section-header"><span class="section-title">Active Option Positions</span><button class="btn-danger" onclick="closeAllOptionPositions()">Close All</button></div>
+                <div class="table-container"><table class="oc-table"><thead><tr><th>Symbol</th><th>Type</th><th>Strike</th><th>Entry</th><th>Current</th><th>Lots</th><th>P&L</th><th>Action</th></tr></thead><tbody id="optionPositionsBody"></tbody></table></div>
+            </div>
+        </div>
+
+
+
+        <!-- ============================================ -->
+        <!-- TAB: CONFIGURATION EDITOR -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-config">
+            <!-- Trading Mode Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🎛️ Trading Mode</span>
+                    <button class="btn btn-primary" onclick="saveAllConfig()" style="padding:5px 15px;">💾 Save All Changes</button>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+                    <button class="mode-config-btn" data-mode="EQUITY_ONLY" onclick="setConfigTradingMode('EQUITY_ONLY')" style="padding:10px; border-radius:8px; cursor:pointer; background:#1a1a2e; border:2px solid #00ff88; color:#00ff88;">
+                        📊 EQUITY ONLY
+                    </button>
+                    <button class="mode-config-btn" data-mode="FNO_ONLY" onclick="setConfigTradingMode('FNO_ONLY')" style="padding:10px; border-radius:8px; cursor:pointer; background:#1a1a2e; border:2px solid #ffaa00; color:#ffaa00;">
+                        🎯 F&O ONLY
+                    </button>
+                    <button class="mode-config-btn" data-mode="BOTH" onclick="setConfigTradingMode('BOTH')" style="padding:10px; border-radius:8px; cursor:pointer; background:#1a1a2e; border:2px solid #a855f7; color:#a855f7;">
+                        🔄 BOTH
+                    </button>
+                </div>
+                <div id="currentTradingModeDisplay" style="margin-top:10px; padding:8px; background:rgba(0,0,0,0.2); border-radius:6px; font-size:0.8rem;"></div>
+            </div>
+
+            <!-- Risk Management Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">⚠️ Risk Management</span>
+                    <span class="badge badge-yellow">Critical Settings</span>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="form-group">
+                        <label>💰 Base Capital (₹)</label>
+                        <input type="number" id="cfg_base_capital" class="form-control" step="1000" value="10000">
+                    </div>
+                    <div class="form-group">
+                        <label>📊 Market Risk %</label>
+                        <input type="number" id="cfg_market_risk" class="form-control" step="0.001" value="0.01">
+                        <small>0.01 = 1% per trade</small>
+                    </div>
+                    <div class="form-group">
+                        <label>📈 Capital Risk %</label>
+                        <input type="number" id="cfg_capital_risk" class="form-control" step="0.001" value="0.005">
+                        <small>0.005 = 0.5% per trade</small>
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Max Capital Per Trade %</label>
+                        <input type="number" id="cfg_max_capital" class="form-control" step="0.1" value="50">
+                        <small>% of capital per trade</small>
+                    </div>
+                    <div class="form-group">
+                        <label>📋 Max Orders Per Day</label>
+                        <input type="number" id="cfg_max_orders" class="form-control" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>⚖️ Risk/Reward Ratio</label>
+                        <input type="number" id="cfg_rr_ratio" class="form-control" step="0.5" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>📊 ATR Multiplier</label>
+                        <input type="number" id="cfg_atr_mult" class="form-control" step="0.5" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>💵 Minimum Trading Capital</label>
+                        <input type="number" id="cfg_min_capital" class="form-control" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>🏦 Broker Margin Multiplier</label>
+                        <input type="number" id="cfg_margin_mult" class="form-control" step="0.5" value="4">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trading Parameters Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">⚙️ Trading Parameters</span>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="form-group">
+                        <label>⏱️ Timeframe (minutes)</label>
+                        <select id="cfg_timeframe" class="form-control">
+                            <option value="1">1 Minute</option>
+                            <option value="5">5 Minutes</option>
+                            <option value="15">15 Minutes</option>
+                            <option value="30">30 Minutes</option>
+                            <option value="60">1 Hour</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 OTM Count</label>
+                        <input type="number" id="cfg_otm_count" class="form-control" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ Max Holding Hours</label>
+                        <input type="number" id="cfg_max_holding" class="form-control" step="0.5" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>🔄 Reentry Allowed</label>
+                        <select id="cfg_reentry" class="form-control">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>⚡ Use Super Orders</label>
+                        <select id="cfg_super_orders" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📈 Trailing Jump %</label>
+                        <input type="number" id="cfg_trailing_jump" class="form-control" step="0.05" value="0.2">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimization Parameters Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🧠 Optimization Parameters</span>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="form-group">
+                        <label>📊 Min Signal Strength</label>
+                        <input type="number" id="cfg_min_signal" class="form-control" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>⏸️ Signal Cooldown (minutes)</label>
+                        <input type="number" id="cfg_cooldown" class="form-control" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label>🚦 Max Signals Per Hour</label>
+                        <input type="number" id="cfg_max_signals" class="form-control" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label>🌍 Market Regime Filter</label>
+                        <select id="cfg_regime_filter" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Kelly Sizing</label>
+                        <select id="cfg_kelly" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📉 Half Kelly</label>
+                        <select id="cfg_half_kelly" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Min Kelly Trades</label>
+                        <input type="number" id="cfg_min_kelly_trades" class="form-control" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>🔄 Adaptive Trailing</label>
+                        <select id="cfg_adaptive" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🚪 Dynamic Exits</label>
+                        <select id="cfg_dynamic_exits" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>⚖️ Strategy Weight Opt</label>
+                        <select id="cfg_weight_opt" class="form-control">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Option Trading Parameters Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🎯 Option Trading Parameters</span>
+                    <span class="badge badge-green">F&O Specific</span>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="form-group">
+                        <label>🔘 Option Trading Enabled</label>
+                        <select id="cfg_option_enabled" class="form-control">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📊 Option Symbols</label>
+                        <input type="text" id="cfg_option_symbols" class="form-control" value="NIFTY,BANKNIFTY,FINNIFTY">
+                        <small>Comma separated</small>
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 OTM Count</label>
+                        <input type="number" id="cfg_option_otm" class="form-control" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>📅 Expiry Index</label>
+                        <select id="cfg_option_expiry" class="form-control">
+                            <option value="0">Current Expiry</option>
+                            <option value="1">Next Expiry</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🛑 SL Multiplier</label>
+                        <input type="number" id="cfg_option_sl" class="form-control" step="0.05" value="0.20">
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Theta Stop %</label>
+                        <input type="number" id="cfg_theta_stop" class="form-control" step="0.05" value="0.10">
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Fixed Stop (₹)</label>
+                        <input type="number" id="cfg_fixed_stop" class="form-control" step="5" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>📉 Max Loss %</label>
+                        <input type="number" id="cfg_max_loss" class="form-control" step="0.05" value="0.15">
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Target Multiplier</label>
+                        <input type="number" id="cfg_target_mult" class="form-control" step="0.5" value="2.5">
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Stretch Target Mult</label>
+                        <input type="number" id="cfg_stretch_target" class="form-control" step="0.5" value="4.0">
+                    </div>
+                    <div class="form-group">
+                        <label>📦 Max Lots Per Trade</label>
+                        <input type="number" id="cfg_max_lots" class="form-control" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Risk % Per Trade</label>
+                        <input type="number" id="cfg_option_risk" class="form-control" step="0.001" value="0.005">
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Min Premium (₹)</label>
+                        <input type="number" id="cfg_min_premium" class="form-control" step="5" value="15">
+                    </div>
+                    <div class="form-group">
+                        <label>📈 Min Delta</label>
+                        <input type="number" id="cfg_min_delta" class="form-control" step="0.05" value="0.35">
+                    </div>
+                    <div class="form-group">
+                        <label>📉 Max Delta</label>
+                        <input type="number" id="cfg_max_delta" class="form-control" step="0.05" value="0.65">
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Max Theta Per Day</label>
+                        <input type="number" id="cfg_max_theta" class="form-control" step="1" value="-8">
+                    </div>
+                    <div class="form-group">
+                        <label>📊 Min IV %</label>
+                        <input type="number" id="cfg_min_iv" class="form-control" step="1" value="12">
+                    </div>
+                    <div class="form-group">
+                        <label>📊 Max IV %</label>
+                        <input type="number" id="cfg_max_iv" class="form-control" step="1" value="40">
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ Max Holding Hours</label>
+                        <input type="number" id="cfg_option_holding" class="form-control" value="2">
+                    </div>
+                    <div class="form-group">
+                        <label>🎯 Early Exit Profit %</label>
+                        <input type="number" id="cfg_early_exit" class="form-control" step="5" value="40">
+                    </div>
+                    <div class="form-group">
+                        <label>⚠️ Avoid Expiry Week</label>
+                        <select id="cfg_avoid_expiry" class="form-control">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>🔗 Copy Option Trades</label>
+                        <select id="cfg_copy_options" class="form-control">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paper Trading & Logging Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📝 Paper Trading & Logging</span>
+                </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="form-group">
+                        <label>📄 Paper Trading Enabled</label>
+                        <select id="cfg_paper_enabled" class="form-control">
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>💰 Paper Balance (₹)</label>
+                        <input type="number" id="cfg_paper_balance" class="form-control" step="10000" value="1000000">
+                    </div>
+                    <div class="form-group">
+                        <label>📋 Log Level</label>
+                        <select id="cfg_log_level" class="form-control">
+                            <option value="DEBUG">DEBUG</option>
+                            <option value="INFO">INFO</option>
+                            <option value="WARNING">WARNING</option>
+                            <option value="ERROR">ERROR</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>📁 Log Directory</label>
+                        <input type="text" id="cfg_log_dir" class="form-control" value="logs">
+                    </div>
+                    <div class="form-group">
+                        <label>📅 Log Retention (days)</label>
+                        <input type="number" id="cfg_log_retention" class="form-control" value="30">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategy Configuration Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">🎯 Active Strategies</span>
+                    <button class="btn btn-primary" onclick="saveStrategyConfig()" style="padding:3px 10px;">Save Strategies</button>
+                </div>
+                <div id="strategyCheckboxContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:8px; margin-bottom:15px;"></div>
+                
+                <div class="section-header" style="margin-top:15px;">
+                    <span class="section-title">⚖️ Strategy Weights</span>
+                </div>
+                <div id="strategyWeightContainer" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px;"></div>
+            </div>
+
+            <!-- Watchlist Section -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">📋 Watchlist</span>
+                    <button class="btn btn-primary" onclick="saveWatchlist()" style="padding:3px 10px;">Save Watchlist</button>
+                </div>
+                <div class="form-group">
+                    <label>Watchlist Symbols (comma separated)</label>
+                    <input type="text" id="cfg_watchlist" class="form-control" value="IDBI,BEL,ITC">
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="section">
+                <div class="section-header">
+                    <span class="section-title">💾 Configuration Actions</span>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="saveAllConfig()">💾 Save All Changes</button>
+                    <button class="btn" onclick="loadAllConfig()" style="background:var(--blue);">🔄 Reload Config</button>
+                    <button class="btn btn-danger" onclick="resetToDefaults()" style="background:transparent; border-color:var(--red);">⚠️ Reset to Defaults</button>
+                    <button class="btn" onclick="exportConfig()" style="background:var(--purple);">📤 Export Config</button>
+                    <button class="btn" onclick="importConfig()" style="background:var(--purple);">📥 Import Config</button>
+                </div>
+                <div id="configSaveStatus" style="margin-top:10px; padding:8px; border-radius:6px; display:none;"></div>
+            </div>
+        </div>
+
+
+
+
+        <!-- ============================================ -->
+        <!-- TAB 7: LOGS -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-logs">
+            <div class="section">
+                <div class="section-header"><span class="section-title">📋 System Logs</span><select id="logType" onchange="loadLogs()" class="form-control" style="width:140px;"><option value="trades">Trade Logs</option><option value="errors">Error Logs</option><option value="performance">Performance Logs</option></select></div>
+                <div id="logContent" style="background: var(--bg-secondary); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.75rem; max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TAB 8: COMMANDS (Merges: Telegram + Commands) -->
+        <!-- ============================================ -->
+        <div class="panel" id="panel-commands">
+            <div class="section">
+                <div class="section-header"><span class="section-title">🤖 Bot Commands</span></div>
+                <div class="command-grid" id="commandsGrid"></div>
+            </div>
+            <div class="section">
+                <div class="section-header"><span class="section-title">📡 Telegram Alerts</span><div style="display:flex; align-items:center; gap:6px;"><div id="tgDot" style="width:8px; height:8px; border-radius:50%; background:var(--text-muted);"></div><span id="tgStatus" style="color:var(--text-secondary);">Disconnected</span></div></div>
+                <div class="tg-config"><input type="password" id="tgToken" placeholder="Bot Token"><input type="text" id="tgChatId" placeholder="Chat ID"><button onclick="connectTelegram()">Connect</button><button onclick="testTelegram()" class="btn-secondary">Test</button></div>
+                <div class="tg-feed" id="tgFeed"><div class="empty-state">No alerts yet</div></div>
+                <div style="display:flex; gap:8px; margin-top:10px;"><input type="text" id="tgMessage" placeholder="Simulate alert..." style="flex:1; background:var(--bg-secondary); border:1px solid var(--border); border-radius:6px; padding:6px 10px; color:white;"><button onclick="sendTelegramMessage()" class="btn-buy">Send</button></div>
+            </div>
+        </div>
+    </main>
+</div>
+
+
+
+
+
+
+
+
+<script>
+// ============================================
+// CONFIGURATION
+// ============================================
+let allTrades = [];
+let optionChainData = null;
+let countdown = 20;
+let greeksMetric = 'delta';
+let straddleType = 'straddle';
+let selectedStrikes = [];
+let tgMessages = [];
+let isLoading = false;
+let optionTradingEnabled = true;
+
+const WATCHLIST = ['NIFTY', 'BANKNIFTY', 'RELIANCE', 'TCS', 'HDFCBANK'];
+const COMMANDS = [
+    { cmd: '/status', desc: 'Bot status' }, { cmd: '/balance', desc: 'Balance' },
+    { cmd: '/positions', desc: 'Open positions' }, { cmd: '/watchlist', desc: 'View symbols' },
+    { cmd: '/add_symbol', desc: 'Add symbol' }, { cmd: '/remove_symbol', desc: 'Remove symbol' },
+    { cmd: '/close_all', desc: 'Close all' }, { cmd: '/market', desc: 'Market data' },
+    { cmd: '/signals', desc: 'Current signals' }, { cmd: '/help', desc: 'All commands' }
+];
+
+
+
+// Paper Trading Toggle Functions
+let currentPaperEnabled = true;
+
+async function loadPaperTradingStatus() {
+    try {
+        const res = await fetch('/api/paper/status');
+        const data = await res.json();
+        currentPaperEnabled = data.enabled;
+        
+        const toggleBtn = document.getElementById('paperToggleBtn');
+        const warningDiv = document.getElementById('paperModeWarning');
+        
+        if (toggleBtn) {
+            if (currentPaperEnabled) {
+                toggleBtn.innerHTML = '🟢 PAPER MODE (ON)';
+                toggleBtn.style.background = 'rgba(0, 229, 160, 0.2)';
+                toggleBtn.style.border = '1px solid #00e5a0';
+                toggleBtn.style.color = '#00e5a0';
+                
+                if (warningDiv) {
+                    warningDiv.style.display = 'block';
+                    warningDiv.style.background = 'rgba(0, 229, 160, 0.1)';
+                    warningDiv.style.border = '1px solid #00e5a0';
+                    warningDiv.innerHTML = '📝 PAPER TRADING MODE ACTIVE - No real money is being traded. All orders are simulated.';
+                }
+            } else {
+                toggleBtn.innerHTML = '🔴 LIVE MODE (OFF)';
+                toggleBtn.style.background = 'rgba(255, 71, 87, 0.2)';
+                toggleBtn.style.border = '1px solid #ff4757';
+                toggleBtn.style.color = '#ff4757';
+                
+                if (warningDiv) {
+                    warningDiv.style.display = 'block';
+                    warningDiv.style.background = 'rgba(255, 71, 87, 0.1)';
+                    warningDiv.style.border = '1px solid #ff4757';
+                    warningDiv.innerHTML = '⚠️ LIVE TRADING MODE ACTIVE - Real money will be traded! Be careful!';
+                }
+            }
+        }
+    } catch(e) {
+        console.error('Error loading paper status:', e);
+    }
+}
+
+async function togglePaperTrading() {
+    const newState = !currentPaperEnabled;
+    const action = newState ? 'ENABLE' : 'DISABLE';
+    
+    if (!confirm(`⚠️ Are you sure you want to ${action} paper trading?\n\n${newState ? 'Paper mode: No real money will be traded.' : 'Live mode: REAL MONEY will be traded!'}`)) {
+        return;
+    }
+    
+    const toggleBtn = document.getElementById('paperToggleBtn');
+    if (toggleBtn) {
+        toggleBtn.innerHTML = '⏳ UPDATING...';
+        toggleBtn.disabled = true;
+    }
+    
+    try {
+        const res = await fetch('/api/paper/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: newState })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            currentPaperEnabled = data.enabled;
+            showToast(data.message);
+            await loadPaperTradingStatus();
+            
+            // Reload paper data if enabled
+            if (currentPaperEnabled) {
+                loadPaperData();
+            }
+        } else {
+            showToast('Failed to toggle: ' + (data.error || 'Unknown error'), true);
+        }
+    } catch(e) {
+        showToast('Error: ' + e.message, true);
+    }
+    
+    if (toggleBtn) {
+        toggleBtn.disabled = false;
+    }
+}
+
+// Update loadPaperData to check if paper trading is enabled
+async function loadPaperData() {
+    // First check if paper trading is enabled
+    if (!currentPaperEnabled) {
+        document.getElementById('paperStats').innerHTML = `
+            <div class="stat-card" style="grid-column: span 4;">
+                <div class="stat-label">⚠️ PAPER TRADING DISABLED</div>
+                <div class="stat-value" style="font-size: 0.9rem;">Enable paper trading to use this feature</div>
+            </div>
+        `;
+        document.getElementById('paperPositionsBody').innerHTML = '<tr><td colspan="5" class="empty-state">Paper trading disabled. Click the toggle button to enable.</tbody>';
+        document.getElementById('paperHistoryBody').innerHTML = '<tr><td colspan="6" class="empty-state">Paper trading disabled.</tbody>';
+        return;
+    }
+    
+    try {
+        // Load summary
+        let summaryRes = await fetch('/api/paper/summary');
+        let summary = await summaryRes.json();
+        
+        document.getElementById('paperStats').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value">₹${(summary.current_balance || 100000).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${(summary.total_pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(summary.total_pnl || 0)}</div></div>
+            <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${(summary.win_rate || 0).toFixed(1)}%</div></div>
+            <div class="stat-card"><div class="stat-label">Active Positions</div><div class="stat-value">${summary.active_positions || 0}</div></div>
+        `;
+        
+        // Load positions
+        let positionsRes = await fetch('/api/paper/positions');
+        let positions = await positionsRes.json();
+        
+        document.getElementById('paperPositionsBody').innerHTML = positions.map(p => `
+            <tr>
+                <td><strong>${p.symbol}</strong></td>
+                <td class="${p.position_type === 'LONG' ? 'positive' : 'negative'}">${p.position_type}</span></td>
+                <td>₹${p.entry_price.toFixed(2)}</span></td>
+                <td>${p.quantity}</span></td>
+                <td><button class="btn-danger" onclick="closePaperPosition('${p.symbol}')">Close</button></span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="5" class="empty-state">No active positions</tbody>';
+        
+        // Load history
+        let historyRes = await fetch('/api/paper/history');
+        let history = await historyRes.json();
+        
+        document.getElementById('paperHistoryBody').innerHTML = history.slice(0, 30).map(h => `
+            <tr>
+                <td>${h.entry_time?.slice(0, 10) || '-'}</span></td>
+                <td>${h.symbol}</span></td>
+                <td class="${h.position_type === 'LONG' ? 'positive' : 'negative'}">${h.position_type}</span></td>
+                <td>₹${h.entry_price.toFixed(2)}</span></td>
+                <td>₹${h.exit_price?.toFixed(2) || '-'}</span></td>
+                <td class="${(h.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(h.pnl || 0)}</span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" class="empty-state">No trade history</tbody>';
+        
+    } catch(e) {
+        console.error('Error loading paper data:', e);
+        showToast('Error loading paper data', true);
+    }
+}
+
+// Update placePaperOrder to check enabled status
+async function placePaperOrder() {
+    if (!currentPaperEnabled) {
+        showToast('Paper trading is disabled. Enable it first.', true);
+        return;
+    }
+    
+    let symbol = document.getElementById('paperSymbol').value;
+    let type = document.getElementById('paperType').value;
+    let qty = parseInt(document.getElementById('paperQty').value);
+    let price = parseFloat(document.getElementById('paperPrice').value) || 0;
+    
+    if (!symbol || qty <= 0) {
+        showToast('Invalid symbol or quantity', true);
+        return;
+    }
+    
+    showToast(`Placing paper order...`);
+    try {
+        let res = await fetch('/api/paper/place', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, type, quantity: qty, price })
+        });
+        let data = await res.json();
+        showToast(data.message, !data.success);
+        if (data.success) loadPaperData();
+    } catch(e) {
+        showToast(e.message, true);
+    }
+}
+
+
+
+
+// Trading Mode Functions
+async function loadTradingMode() {
+    try {
+        const res = await fetch('/api/trading-mode');
+        const data = await res.json();
+        
+        document.getElementById('currentMode').innerHTML = data.mode;
+        
+        // Update badge
+        const badge = document.getElementById('tradingModeBadge');
+        if (data.mode === 'EQUITY_ONLY') {
+            badge.innerHTML = '📊 EQUITY ONLY MODE';
+            badge.style.background = 'rgba(0, 255, 136, 0.15)';
+            badge.style.color = '#00ff88';
+            document.getElementById('modeDescription').innerHTML = '📊 Trading ONLY equities/stocks. Options are disabled. Suitable for conservative trading.';
+        } else if (data.mode === 'FNO_ONLY') {
+            badge.innerHTML = '🎯 F&O ONLY MODE';
+            badge.style.background = 'rgba(255, 170, 0, 0.15)';
+            badge.style.color = '#ffaa00';
+            document.getElementById('modeDescription').innerHTML = '🎯 Trading ONLY Futures & Options. Higher leverage, requires active monitoring.';
+        } else {
+            badge.innerHTML = '🔄 BOTH MODE';
+            badge.style.background = 'rgba(168, 85, 247, 0.15)';
+            badge.style.color = '#a855f7';
+            document.getElementById('modeDescription').innerHTML = '🔄 Trading BOTH equities and options. Maximum opportunities, diversified approach.';
+        }
+        
+        // Update button active states
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            if (btn.dataset.mode === data.mode) {
+                btn.style.opacity = '1';
+                btn.style.transform = 'scale(1.02)';
+            } else {
+                btn.style.opacity = '0.7';
+                btn.style.transform = 'scale(1)';
+            }
+        });
+        
+    } catch(e) {
+        console.error('Error loading trading mode:', e);
+    }
+}
+
+
+
+
+
+// ============================================
+// BOT CONTROL FUNCTIONS - FIXED VERSION
+// ============================================
+
+let botStatusInterval = null;
+let botStartTime = null;
+let lastKnownBotState = false;
+
+async function controlBot(action) {
+    const startBtn = document.getElementById('startBotBtn');
+    const stopBtn = document.getElementById('stopBotBtn');
+    const messageDiv = document.getElementById('botControlMessage');
+    
+    if (startBtn) startBtn.disabled = true;
+    if (stopBtn) stopBtn.disabled = true;
+    
+    if (messageDiv) {
+        messageDiv.innerHTML = `⏳ ${action.toUpperCase()}ING BOT...`;
+        messageDiv.style.background = 'rgba(255, 170, 0, 0.2)';
+    }
+    
+    try {
+        let endpoint = '';
+        if (action === 'start') {
+            endpoint = '/api/bot/start';
+        } else if (action === 'stop') {
+            endpoint = '/api/bot/stop';
+        } else if (action === 'restart') {
+            const stopRes = await fetch('/api/bot/stop', { method: 'POST' });
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            endpoint = '/api/bot/start';
+        }
+        
+        const response = await fetch(endpoint, { method: 'POST' });
+        const data = await response.json();
+        
+        if (messageDiv) {
+            if (data.success) {
+                messageDiv.innerHTML = `✅ ${data.message}`;
+                messageDiv.style.background = 'rgba(0, 229, 160, 0.2)';
+                messageDiv.style.color = 'var(--green)';
+                
+                if (action === 'start' || action === 'restart') {
+                    botStartTime = Date.now();
+                }
+                if (action === 'stop') {
+                    botStartTime = null;
+                    const uptimeElem = document.getElementById('botUptime');
+                    if (uptimeElem) uptimeElem.innerHTML = '0h 0m';
+                }
+                
+                setTimeout(() => {
+                    checkBotStatus(true);
+                    loadBotLogs();
+                }, 1000);
+            } else {
+                messageDiv.innerHTML = `❌ ${data.message}`;
+                messageDiv.style.background = 'rgba(255, 71, 87, 0.2)';
+                messageDiv.style.color = 'var(--red)';
+                
+                if (action === 'start' || action === 'restart') {
+                    botStartTime = null;
+                }
+            }
+            
+            setTimeout(() => {
+                if (messageDiv && messageDiv.innerHTML !== 'Click START to begin automated trading') {
+                    messageDiv.style.background = 'rgba(0,0,0,0.3)';
+                    messageDiv.style.color = '#888';
+                    messageDiv.innerHTML = 'Click START to begin automated trading';
+                }
+            }, 5000);
+        }
+        
+    } catch(e) {
+        if (messageDiv) {
+            messageDiv.innerHTML = `❌ Error: ${e.message}`;
+            messageDiv.style.background = 'rgba(255, 71, 87, 0.2)';
+        }
+        console.error(e);
+    }
+    
+    if (startBtn) startBtn.disabled = false;
+    if (stopBtn) stopBtn.disabled = false;
+}
+
+async function checkBotStatus(forceRefresh = false) {
+    try {
+        const response = await fetch('/api/bot/status');
+        const data = await response.json();
+        
+        const statusBadge = document.getElementById('botStatusBadge');
+        const statusValue = document.getElementById('botRunningStatus');
+        const pidSpan = document.getElementById('botPid');
+        
+        if (lastKnownBotState !== data.running) {
+            lastKnownBotState = data.running;
+            loadBotLogs();
+        }
+        
+        if (data.running) {
+            if (statusBadge) {
+                statusBadge.innerHTML = '🟢 RUNNING';
+                statusBadge.className = 'badge live-badge';
+            }
+            if (statusValue) {
+                statusValue.innerHTML = 'RUNNING';
+                statusValue.className = 'stat-value positive';
+            }
+            if (pidSpan) pidSpan.innerHTML = `PID: ${data.pid || 'N/A'}`;
+            
+            if (!botStartTime || forceRefresh) {
+                botStartTime = Date.now();
+            }
+            updateUptime();
+        } else {
+            if (statusBadge) {
+                statusBadge.innerHTML = '🔴 STOPPED';
+                statusBadge.className = 'badge badge-red';
+            }
+            if (statusValue) {
+                statusValue.innerHTML = 'STOPPED';
+                statusValue.className = 'stat-value negative';
+            }
+            if (pidSpan) pidSpan.innerHTML = 'PID: --';
+            
+            if (botStartTime !== null) {
+                botStartTime = null;
+                const uptimeElem = document.getElementById('botUptime');
+                if (uptimeElem) uptimeElem.innerHTML = '0h 0m';
+            }
+        }
+    } catch(e) {
+        console.error('Status check error:', e);
+    }
+}
+
+function updateUptime() {
+    const uptimeElem = document.getElementById('botUptime');
+    if (uptimeElem && botStartTime) {
+        const elapsed = Math.floor((Date.now() - botStartTime) / 1000);
+        const hours = Math.floor(elapsed / 3600);
+        const minutes = Math.floor((elapsed % 3600) / 60);
+        uptimeElem.innerHTML = `${hours}h ${minutes}m`;
+    }
+}
+
+async function loadBotLogs() {
+    try {
+        const response = await fetch('/api/bot/logs');
+        const data = await response.json();
+        
+        const logDiv = document.getElementById('botLogs');
+        if (logDiv) {
+            if (data.logs && data.logs.length > 0) {
+                const validLogs = data.logs.filter(log => log && log.trim().length > 0);
+                if (validLogs.length > 0) {
+                    logDiv.innerHTML = validLogs.slice(-100).map(log => 
+                        `<div style="padding: 6px 10px; border-bottom: 1px solid var(--border); font-family: monospace; font-size: 0.7rem; word-break: break-all; color: ${log.includes('ERROR') ? '#ff4444' : (log.includes('✅') ? '#00ff88' : '#e0e0e0')}">
+                            ${escapeHtml(log)}
+                        </div>`
+                    ).join('');
+                } else {
+                    logDiv.innerHTML = '<div class="empty-state">No logs available. Start the bot to see output.</div>';
+                }
+            } else {
+                logDiv.innerHTML = '<div class="empty-state">No logs available. Start the bot to see output.</div>';
+            }
+        }
+    } catch(e) {
+        console.error('Log load error:', e);
+    }
+}
+
+async function loadBotConfig() {
+    try {
+        const response = await fetch('/api/config/get');
+        const config = await response.json();
+        
+        const configGrid = document.getElementById('botConfigGrid');
+        if (configGrid) {
+            configGrid.innerHTML = `
+                <div class="stat-card"><div class="stat-label">Trading Mode</div><div class="stat-value">${config.TRADING_MODE || 'BOTH'}</div></div>
+                <div class="stat-card"><div class="stat-label">Watchlist</div><div class="stat-value">${(config.WATCHLIST || []).length}</div></div>
+                <div class="stat-card"><div class="stat-label">Active Strategies</div><div class="stat-value">${(config.ACTIVE_STRATEGIES || []).length}</div></div>
+                <div class="stat-card"><div class="stat-label">Base Capital</div><div class="stat-value">₹${(config.BASE_CAPITAL || 0).toLocaleString()}</div></div>
+                <div class="stat-card"><div class="stat-label">Risk/Trade</div><div class="stat-value">${((config.BASE_CAPITAL_RISK_PERCENT || 0) * 100).toFixed(1)}%</div></div>
+                <div class="stat-card"><div class="stat-label">RR Ratio</div><div class="stat-value">1:${config.RISK_REWARD_RATIO || 3}</div></div>
+            `;
+        }
+    } catch(e) {
+        console.error('Config load error:', e);
+    }
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Initialize bot control tab
+function initBotControlTab() {
+    const botControlTab = document.querySelector('.tab[data-tab="botcontrol"]');
+    if (botControlTab) {
+        botControlTab.addEventListener('click', () => {
+            setTimeout(() => {
+                checkBotStatus(true);
+                loadBotLogs();
+                loadBotConfig();
+                
+                if (botStatusInterval) clearInterval(botStatusInterval);
+                botStatusInterval = setInterval(() => {
+                    const activeTab = document.querySelector('.tab.active');
+                    if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+                        checkBotStatus();
+                        if (lastKnownBotState) updateUptime();
+                    }
+                }, 5000);
+            }, 100);
+        });
+    }
+}
+
+// Auto-refresh logs
+let logRefreshInterval = null;
+
+function startLogAutoRefresh() {
+    if (logRefreshInterval) clearInterval(logRefreshInterval);
+    logRefreshInterval = setInterval(() => {
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab && activeTab.dataset.tab === 'botcontrol' && lastKnownBotState) {
+            loadBotLogs();
+        }
+    }, 5000);
+}
+
+// Initialize on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initBotControlTab();
+        startLogAutoRefresh();
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+            checkBotStatus(true);
+            loadBotLogs();
+            loadBotConfig();
+        }
+    });
+} else {
+    initBotControlTab();
+    startLogAutoRefresh();
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+        checkBotStatus(true);
+        loadBotLogs();
+        loadBotConfig();
+    }
+}
+
+// Refresh function for bot control
+function refreshBotControl() {
+    if (document.querySelector('.tab.active')?.dataset.tab === 'botcontrol') {
+        checkBotStatus(true);
+        loadBotLogs();
+        loadBotConfig();
+    }
+}
+
+// Add to existing refresh if available
+if (typeof window.refreshAll === 'function') {
+    const originalRefreshAll = window.refreshAll;
+    window.refreshAll = function() {
+        originalRefreshAll();
+        refreshBotControl();
+    };
+}
+
+// Tab click handler for bot control
+function initBotControlTab() {
+    const botControlTab = document.querySelector('.tab[data-tab="botcontrol"]');
+    if (botControlTab) {
+        botControlTab.addEventListener('click', () => {
+            setTimeout(() => {
+                checkBotStatus();
+                loadBotLogs();
+                loadBotConfig();
+                
+                // Start status polling when tab is active
+                if (botStatusInterval) clearInterval(botStatusInterval);
+                botStatusInterval = setInterval(() => {
+                    const activeTab = document.querySelector('.tab.active');
+                    if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+                        checkBotStatus();
+                        if (botStartTime) updateUptime();
+                    }
+                }, 5000);
+            }, 100);
+        });
+    }
+}
+
+// Call this when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initBotControlTab();
+        // Check if bot control tab is active on load
+        const activeTab = document.querySelector('.tab.active');
+        if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+            checkBotStatus();
+            loadBotLogs();
+            loadBotConfig();
+        }
+    });
+} else {
+    initBotControlTab();
+    const activeTab = document.querySelector('.tab.active');
+    if (activeTab && activeTab.dataset.tab === 'botcontrol') {
+        checkBotStatus();
+        loadBotLogs();
+        loadBotConfig();
+    }
+}
+
+// Add escapeHtml function
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Refresh function that doesn't override anything
+function refreshBotControl() {
+    if (document.querySelector('.tab.active')?.dataset.tab === 'botcontrol') {
+        checkBotStatus();
+        loadBotLogs();
+        loadBotConfig();
+    }
+}
+
+// Add to existing refresh if needed
+if (typeof window.refreshAll === 'function') {
+    const originalRefreshAll = window.refreshAll;
+    window.refreshAll = function() {
+        originalRefreshAll();
+        refreshBotControl();
+    };
+} else {
+    window.refreshAll = refreshBotControl;
+}
+
+
+
+
+
+
+
+
+
+// Store active toasts
+let activeToasts = [];
+
+async function setTradingMode(mode) {
+    // Don't show "Changing" message if you already have one
+    // Just show the result
+    
+    try {
+        const res = await fetch('/api/set-trading-mode', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: mode })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            // Only show ONE message - the result
+            showToast(`✅ Trading mode changed to ${mode}`);
+            loadTradingMode();
+            refreshAll();
+        } else {
+            showToast(`❌ Failed: ${data.error}`, true);
+        }
+    } catch(e) {
+        showToast(`❌ Error: ${e.message}`, true);
+    }
+}
+
+
+
+
+// ============================================
+// CONFIGURATION EDITOR FUNCTIONS
+// ============================================
+
+let currentConfig = {};
+
+async function loadAllConfig() {
+    try {
+        const res = await fetch('/api/config/get');
+        if (res.ok) {
+            currentConfig = await res.json();
+            populateConfigForm(currentConfig);
+            showConfigStatus('✅ Configuration loaded', 'success');
+        } else {
+            // Fallback: get from Python
+            await fetchConfigFromPython();
+        }
+    } catch(e) {
+        console.error('Error loading config:', e);
+        showConfigStatus('⚠️ Using local defaults', 'warning');
+        useDefaultConfig();
+    }
+}
+
+async function fetchConfigFromPython() {
+    // Try to get config via API that reads from Python
+    try {
+        const res = await fetch('/api/config/python');
+        if (res.ok) {
+            currentConfig = await res.json();
+            populateConfigForm(currentConfig);
+        } else {
+            useDefaultConfig();
+        }
+    } catch(e) {
+        useDefaultConfig();
+    }
+}
+
+function useDefaultConfig() {
+    currentConfig = {
+        TRADING_MODE: 'BOTH',
+        BASE_CAPITAL: 10000,
+        MARKET_MONEY_RISK_PERCENT: 0.01,
+        BASE_CAPITAL_RISK_PERCENT: 0.005,
+        MAX_CAPITAL_PER_TRADE: 0.5,
+        MAX_ORDERS_PER_DAY: 5,
+        RISK_REWARD_RATIO: 3,
+        ATR_MULTIPLIER: 5,
+        Minimum_trading_capital: 10,
+        BROKER_MARGIN_MULTIPLIER: 4,
+        TIMEFRAME: '15',
+        OTM_COUNT: 1,
+        MAX_HOLDING_HOURS: 5,
+        REENTRY_ALLOWED: True,
+        USE_SUPER_ORDERS: True,
+        TRAILING_JUMP: 0.2,
+        MIN_SIGNAL_STRENGTH: 10,
+        SIGNAL_COOLDOWN_MINUTES: 5,
+        MAX_SIGNALS_PER_HOUR: 3,
+        USE_MARKET_REGIME_FILTER: True,
+        USE_Kelly_SIZING: True,
+        MIN_KELlY_TRADES: 10,
+        HALF_KELLY: True,
+        ENABLE_ADAPTIVE_TRAILING: True,
+        ENABLE_DYNAMIC_EXITS: True,
+        ENABLE_STRATEGY_WEIGHT_OPTIMIZATION: True,
+        PAPER_TRADING_ENABLED: True,
+        PAPER_BALANCE: 1000000,
+        LOG_LEVEL: 'INFO',
+        LOG_DIR: 'logs',
+        LOG_RETENTION_DAYS: 30,
+        OPTION_TRADING_ENABLED: true,
+        OPTION_SYMBOLS: ['NIFTY', 'BANKNIFTY', 'FINNIFTY'],
+        OPTION_OTM_COUNT: 1,
+        OPTION_EXPIRY: 0,
+        OPTION_SL_MULTIPLIER: 0.20,
+        OPTION_THETA_STOP_PERCENT: 0.10,
+        OPTION_FIXED_STOP_RUPEE: 10.0,
+        OPTION_MAX_LOSS_PERCENT: 0.15,
+        OPTION_TARGET_MULTIPLIER: 2.5,
+        OPTION_STRETCH_TARGET_MULTIPLIER: 4.0,
+        OPTION_MAX_LOTS_PER_TRADE: 2,
+        OPTION_RISK_PER_TRADE_PERCENT: 0.005,
+        OPTION_MIN_PREMIUM_FOR_TRADE: 15.0,
+        MIN_DELTA_FOR_ENTRY: 0.35,
+        MAX_DELTA_FOR_ENTRY: 0.65,
+        MAX_THETA_PER_DAY: -8,
+        MIN_IV_PERCENT: 12,
+        MAX_IV_PERCENT: 40,
+        OPTION_MAX_HOLDING_HOURS: 2,
+        OPTION_EARLY_EXIT_PROFIT_PERCENT: 40,
+        OPTION_AVOID_EXPIRY_WEEK: True,
+        COPY_OPTION_TRADES: False,
+        ACTIVE_STRATEGIES: ['EMA_RSI', 'MACD_Bollinger', 'RSI_50_Crossover', 'VWAP_Reversion', 'MA_Crossover_50_200'],
+        STRATEGY_WEIGHTS: {'EMA_RSI': 0.2, 'MACD_Bollinger': 0.2, 'RSI_50_Crossover': 0.2, 'VWAP_Reversion': 0.2, 'MA_Crossover_50_200': 0.2},
+        WATCHLIST: ['IDBI', 'BEL', 'ITC']
+    };
+    populateConfigForm(currentConfig);
+}
+
+function populateConfigForm(config) {
+    // Trading Mode
+    const modeDisplay = document.getElementById('currentTradingModeDisplay');
+    if (modeDisplay) modeDisplay.innerHTML = `Current Mode: <strong style="color:var(--green)">${config.TRADING_MODE}</strong>`;
+    
+    // Risk Management
+    setInputValue('cfg_base_capital', config.BASE_CAPITAL);
+    setInputValue('cfg_market_risk', config.MARKET_MONEY_RISK_PERCENT);
+    setInputValue('cfg_capital_risk', config.BASE_CAPITAL_RISK_PERCENT);
+    setInputValue('cfg_max_capital', config.MAX_CAPITAL_PER_TRADE * 100);
+    setInputValue('cfg_max_orders', config.MAX_ORDERS_PER_DAY);
+    setInputValue('cfg_rr_ratio', config.RISK_REWARD_RATIO);
+    setInputValue('cfg_atr_mult', config.ATR_MULTIPLIER);
+    setInputValue('cfg_min_capital', config.Minimum_trading_capital);
+    setInputValue('cfg_margin_mult', config.BROKER_MARGIN_MULTIPLIER);
+    
+    // Trading Parameters
+    setSelectValue('cfg_timeframe', String(config.TIMEFRAME));
+    setInputValue('cfg_otm_count', config.OTM_COUNT);
+    setInputValue('cfg_max_holding', config.MAX_HOLDING_HOURS);
+    setSelectValue('cfg_reentry', config.REENTRY_ALLOWED ? 'true' : 'false');
+    setSelectValue('cfg_super_orders', config.USE_SUPER_ORDERS ? 'true' : 'false');
+    setInputValue('cfg_trailing_jump', config.TRAILING_JUMP);
+    
+    // Optimization
+    setInputValue('cfg_min_signal', config.MIN_SIGNAL_STRENGTH);
+    setInputValue('cfg_cooldown', config.SIGNAL_COOLDOWN_MINUTES);
+    setInputValue('cfg_max_signals', config.MAX_SIGNALS_PER_HOUR);
+    setSelectValue('cfg_regime_filter', config.USE_MARKET_REGIME_FILTER ? 'true' : 'false');
+    setSelectValue('cfg_kelly', config.USE_Kelly_SIZING ? 'true' : 'false');
+    setSelectValue('cfg_half_kelly', config.HALF_KELLY ? 'true' : 'false');
+    setInputValue('cfg_min_kelly_trades', config.MIN_KELlY_TRADES);
+    setSelectValue('cfg_adaptive', config.ENABLE_ADAPTIVE_TRAILING ? 'true' : 'false');
+    setSelectValue('cfg_dynamic_exits', config.ENABLE_DYNAMIC_EXITS ? 'true' : 'false');
+    setSelectValue('cfg_weight_opt', config.ENABLE_STRATEGY_WEIGHT_OPTIMIZATION ? 'true' : 'false');
+    
+    // Option Trading
+    setSelectValue('cfg_option_enabled', config.OPTION_TRADING_ENABLED ? 'true' : 'false');
+    if (config.OPTION_SYMBOLS) setInputValue('cfg_option_symbols', config.OPTION_SYMBOLS.join(','));
+    setInputValue('cfg_option_otm', config.OPTION_OTM_COUNT);
+    setSelectValue('cfg_option_expiry', String(config.OPTION_EXPIRY));
+    setInputValue('cfg_option_sl', config.OPTION_SL_MULTIPLIER);
+    setInputValue('cfg_theta_stop', config.OPTION_THETA_STOP_PERCENT);
+    setInputValue('cfg_fixed_stop', config.OPTION_FIXED_STOP_RUPEE);
+    setInputValue('cfg_max_loss', config.OPTION_MAX_LOSS_PERCENT);
+    setInputValue('cfg_target_mult', config.OPTION_TARGET_MULTIPLIER);
+    setInputValue('cfg_stretch_target', config.OPTION_STRETCH_TARGET_MULTIPLIER);
+    setInputValue('cfg_max_lots', config.OPTION_MAX_LOTS_PER_TRADE);
+    setInputValue('cfg_option_risk', config.OPTION_RISK_PER_TRADE_PERCENT);
+    setInputValue('cfg_min_premium', config.OPTION_MIN_PREMIUM_FOR_TRADE);
+    setInputValue('cfg_min_delta', config.MIN_DELTA_FOR_ENTRY);
+    setInputValue('cfg_max_delta', config.MAX_DELTA_FOR_ENTRY);
+    setInputValue('cfg_max_theta', config.MAX_THETA_PER_DAY);
+    setInputValue('cfg_min_iv', config.MIN_IV_PERCENT);
+    setInputValue('cfg_max_iv', config.MAX_IV_PERCENT);
+    setInputValue('cfg_option_holding', config.OPTION_MAX_HOLDING_HOURS);
+    setInputValue('cfg_early_exit', config.OPTION_EARLY_EXIT_PROFIT_PERCENT);
+    setSelectValue('cfg_avoid_expiry', config.OPTION_AVOID_EXPIRY_WEEK ? 'true' : 'false');
+    setSelectValue('cfg_copy_options', config.COPY_OPTION_TRADES ? 'true' : 'false');
+    
+    // Paper & Logging
+    setSelectValue('cfg_paper_enabled', config.PAPER_TRADING_ENABLED ? 'true' : 'false');
+    setInputValue('cfg_paper_balance', config.PAPER_BALANCE);
+    setSelectValue('cfg_log_level', config.LOG_LEVEL);
+    setInputValue('cfg_log_dir', config.LOG_DIR);
+    setInputValue('cfg_log_retention', config.LOG_RETENTION_DAYS);
+    
+    // Watchlist
+    if (config.WATCHLIST) setInputValue('cfg_watchlist', config.WATCHLIST.join(','));
+    
+    // Strategies
+    renderStrategyCheckboxes(config.ACTIVE_STRATEGIES);
+    renderStrategyWeights(config.STRATEGY_WEIGHTS);
+}
+
+function setInputValue(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.value = value;
+}
+
+function setSelectValue(id, value) {
+    const el = document.getElementById(id);
+    if (el && el.querySelector(`option[value="${value}"]`)) {
+        el.value = value;
+    }
+}
+
+function renderStrategyCheckboxes(activeStrategies) {
+    const container = document.getElementById('strategyCheckboxContainer');
+    if (!container) return;
+    
+    const allStrategies = ['EMA_RSI', 'MACD_Bollinger', 'RSI_50_Crossover', 'VWAP_Reversion', 'MA_Crossover_50_200', 'ORB_30min'];
+    
+    container.innerHTML = allStrategies.map(strategy => `
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+            <input type="checkbox" value="${strategy}" ${activeStrategies.includes(strategy) ? 'checked' : ''} class="strategy-checkbox">
+            <span>${strategy}</span>
+        </label>
+    `).join('');
+}
+
+function renderStrategyWeights(weights) {
+    const container = document.getElementById('strategyWeightContainer');
+    if (!container) return;
+    
+    const allStrategies = ['EMA_RSI', 'MACD_Bollinger', 'RSI_50_Crossover', 'VWAP_Reversion', 'MA_Crossover_50_200', 'ORB_30min'];
+    
+    container.innerHTML = allStrategies.map(strategy => `
+        <div class="form-group" style="margin-bottom:0;">
+            <label>${strategy}</label>
+            <input type="number" step="0.05" min="0" max="1" value="${weights[strategy] || 0}" class="strategy-weight" data-strategy="${strategy}" style="width:80px;">
+        </div>
+    `).join('');
+}
+
+function getFormConfig() {
+    // Helper to get boolean from select
+    const getBool = (id) => document.getElementById(id)?.value === 'true';
+    const getNumber = (id) => parseFloat(document.getElementById(id)?.value) || 0;
+    const getInt = (id) => parseInt(document.getElementById(id)?.value) || 0;
+    const getString = (id) => document.getElementById(id)?.value || '';
+    
+    // Get active strategies
+    const activeStrategies = [];
+    document.querySelectorAll('.strategy-checkbox:checked').forEach(cb => {
+        activeStrategies.push(cb.value);
+    });
+    
+    // Get strategy weights
+    const strategyWeights = {};
+    document.querySelectorAll('.strategy-weight').forEach(input => {
+        strategyWeights[input.dataset.strategy] = parseFloat(input.value) || 0;
+    });
+    
+    return {
+        TRADING_MODE: getString('cfg_trading_mode') || 'BOTH',
+        BASE_CAPITAL: getNumber('cfg_base_capital'),
+        MARKET_MONEY_RISK_PERCENT: getNumber('cfg_market_risk'),
+        BASE_CAPITAL_RISK_PERCENT: getNumber('cfg_capital_risk'),
+        MAX_CAPITAL_PER_TRADE: getNumber('cfg_max_capital') / 100,
+        MAX_ORDERS_PER_DAY: getInt('cfg_max_orders'),
+        RISK_REWARD_RATIO: getNumber('cfg_rr_ratio'),
+        ATR_MULTIPLIER: getNumber('cfg_atr_mult'),
+        Minimum_trading_capital: getNumber('cfg_min_capital'),
+        BROKER_MARGIN_MULTIPLIER: getNumber('cfg_margin_mult'),
+        TIMEFRAME: getString('cfg_timeframe'),
+        OTM_COUNT: getInt('cfg_otm_count'),
+        MAX_HOLDING_HOURS: getNumber('cfg_max_holding'),
+        REENTRY_ALLOWED: getBool('cfg_reentry'),
+        USE_SUPER_ORDERS: getBool('cfg_super_orders'),
+        TRAILING_JUMP: getNumber('cfg_trailing_jump'),
+        MIN_SIGNAL_STRENGTH: getInt('cfg_min_signal'),
+        SIGNAL_COOLDOWN_MINUTES: getInt('cfg_cooldown'),
+        MAX_SIGNALS_PER_HOUR: getInt('cfg_max_signals'),
+        USE_MARKET_REGIME_FILTER: getBool('cfg_regime_filter'),
+        USE_Kelly_SIZING: getBool('cfg_kelly'),
+        MIN_KELlY_TRADES: getInt('cfg_min_kelly_trades'),
+        HALF_KELLY: getBool('cfg_half_kelly'),
+        ENABLE_ADAPTIVE_TRAILING: getBool('cfg_adaptive'),
+        ENABLE_DYNAMIC_EXITS: getBool('cfg_dynamic_exits'),
+        ENABLE_STRATEGY_WEIGHT_OPTIMIZATION: getBool('cfg_weight_opt'),
+        PAPER_TRADING_ENABLED: getBool('cfg_paper_enabled'),
+        PAPER_BALANCE: getNumber('cfg_paper_balance'),
+        LOG_LEVEL: getString('cfg_log_level'),
+        LOG_DIR: getString('cfg_log_dir'),
+        LOG_RETENTION_DAYS: getInt('cfg_log_retention'),
+        OPTION_TRADING_ENABLED: getBool('cfg_option_enabled'),
+        OPTION_SYMBOLS: getString('cfg_option_symbols').split(',').map(s => s.trim()),
+        OPTION_OTM_COUNT: getInt('cfg_option_otm'),
+        OPTION_EXPIRY: getInt('cfg_option_expiry'),
+        OPTION_SL_MULTIPLIER: getNumber('cfg_option_sl'),
+        OPTION_THETA_STOP_PERCENT: getNumber('cfg_theta_stop'),
+        OPTION_FIXED_STOP_RUPEE: getNumber('cfg_fixed_stop'),
+        OPTION_MAX_LOSS_PERCENT: getNumber('cfg_max_loss'),
+        OPTION_TARGET_MULTIPLIER: getNumber('cfg_target_mult'),
+        OPTION_STRETCH_TARGET_MULTIPLIER: getNumber('cfg_stretch_target'),
+        OPTION_MAX_LOTS_PER_TRADE: getInt('cfg_max_lots'),
+        OPTION_RISK_PER_TRADE_PERCENT: getNumber('cfg_option_risk'),
+        OPTION_MIN_PREMIUM_FOR_TRADE: getNumber('cfg_min_premium'),
+        MIN_DELTA_FOR_ENTRY: getNumber('cfg_min_delta'),
+        MAX_DELTA_FOR_ENTRY: getNumber('cfg_max_delta'),
+        MAX_THETA_PER_DAY: getNumber('cfg_max_theta'),
+        MIN_IV_PERCENT: getInt('cfg_min_iv'),
+        MAX_IV_PERCENT: getInt('cfg_max_iv'),
+        OPTION_MAX_HOLDING_HOURS: getInt('cfg_option_holding'),
+        OPTION_EARLY_EXIT_PROFIT_PERCENT: getInt('cfg_early_exit'),
+        OPTION_AVOID_EXPIRY_WEEK: getBool('cfg_avoid_expiry'),
+        COPY_OPTION_TRADES: getBool('cfg_copy_options'),
+        ACTIVE_STRATEGIES: activeStrategies,
+        STRATEGY_WEIGHTS: strategyWeights,
+        WATCHLIST: getString('cfg_watchlist').split(',').map(s => s.trim().toUpperCase())
+    };
+}
+
+async function saveAllConfig() {
+    const config = getFormConfig();
+    const saveStatus = document.getElementById('configSaveStatus');
+    
+    showConfigStatus('💾 Saving configuration...', 'info');
+    
+    try {
+        const res = await fetch('/api/config/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+            showConfigStatus(`✅ Configuration saved successfully! ${data.message || ''}`, 'success');
+            showToast('Configuration saved successfully!');
+            
+            // Reload to show updated values
+            setTimeout(() => loadAllConfig(), 1000);
+        } else {
+            showConfigStatus(`❌ Save failed: ${data.error}`, 'error');
+            showToast(`Save failed: ${data.error}`, true);
+        }
+    } catch(e) {
+        showConfigStatus(`❌ Error: ${e.message}`, 'error');
+        showToast(`Error: ${e.message}`, true);
+    }
+}
+
+function showConfigStatus(message, type) {
+    const statusDiv = document.getElementById('configSaveStatus');
+    if (!statusDiv) return;
+    
+    statusDiv.style.display = 'block';
+    statusDiv.innerHTML = message;
+    statusDiv.style.background = type === 'success' ? 'rgba(0,229,160,0.2)' : 
+                               (type === 'error' ? 'rgba(255,71,87,0.2)' : 
+                               (type === 'warning' ? 'rgba(245,158,11,0.2)' : 'rgba(59,130,246,0.2)'));
+    statusDiv.style.border = `1px solid ${type === 'success' ? 'var(--green)' : 
+                                             (type === 'error' ? 'var(--red)' : 
+                                             (type === 'warning' ? 'var(--yellow)' : 'var(--blue)'))}`;
+    statusDiv.style.color = type === 'success' ? 'var(--green)' : 
+                            (type === 'error' ? 'var(--red)' : 
+                            (type === 'warning' ? 'var(--yellow)' : 'var(--blue)'));
+    
+    setTimeout(() => {
+        if (statusDiv.style.display !== 'none') {
+            statusDiv.style.opacity = '0';
+            setTimeout(() => { if (statusDiv) statusDiv.style.display = 'none'; statusDiv.style.opacity = '1'; }, 2000);
+        }
+    }, 3000);
+}
+
+async function setConfigTradingMode(mode) {
+    const modeDisplay = document.getElementById('currentTradingModeDisplay');
+    if (modeDisplay) modeDisplay.innerHTML = `Current Mode: <strong style="color:var(--green)">${mode}</strong>`;
+    
+    // Update the hidden field or directly call save
+    const config = getFormConfig();
+    config.TRADING_MODE = mode;
+    
+    try {
+        const res = await fetch('/api/config/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            showToast(`Trading mode changed to ${mode}`);
+            showConfigStatus(`✅ Trading mode changed to ${mode}`, 'success');
+            // Update the main dashboard's trading mode display if exists
+            if (typeof loadTradingMode === 'function') loadTradingMode();
+        } else {
+            showToast(`Failed: ${data.error}`, true);
+        }
+    } catch(e) {
+        showToast(`Error: ${e.message}`, true);
+    }
+}
+
+function saveStrategyConfig() {
+    saveAllConfig();
+}
+
+function saveWatchlist() {
+    saveAllConfig();
+}
+
+function resetToDefaults() {
+    if (confirm('⚠️ Reset ALL configuration to defaults? This cannot be undone!')) {
+        useDefaultConfig();
+        showConfigStatus('🔄 Reset to default values. Click Save to apply.', 'warning');
+    }
+}
+
+function exportConfig() {
+    const config = getFormConfig();
+    const dataStr = JSON.stringify(config, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `config_backup_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Configuration exported!');
+}
+
+function importConfig() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const config = JSON.parse(ev.target.result);
+                populateConfigForm(config);
+                showConfigStatus('✅ Configuration imported! Click Save to apply.', 'success');
+                showToast('Configuration imported!');
+            } catch(err) {
+                showConfigStatus('❌ Invalid JSON file', 'error');
+                showToast('Invalid JSON file', true);
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+// Add to refreshAll function if needed
+const originalRefreshAll = window.refreshAll;
+window.refreshAll = function() {
+    if (originalRefreshAll) originalRefreshAll();
+    if (document.querySelector('.tab.active')?.dataset.tab === 'config') {
+        loadAllConfig();
+    }
+};
+
+
+
+
+// Add to your existing tab click handlers to refresh mode when needed
+// Also add loadTradingMode() to your refreshAll() function
+
+// ============================================
+// ADD THE BACKTEST FUNCTIONS HERE
+// ============================================
+
+async function testAPIConnection() {
+    const output = document.getElementById('debugOutput');
+    if (!output) {
+        console.log("Debug output element not found");
+        return;
+    }
+    output.innerHTML = '🔄 Testing API connection...';
+    
+    try {
+        const res = await fetch('/api/market');
+        const data = await res.json();
+        output.innerHTML = `✅ API Connected!<br>Market Data: ${JSON.stringify(data, null, 2).substring(0, 500)}`;
+        console.log("API test successful:", data);
+    } catch(e) {
+        output.innerHTML = `❌ API Connection Failed: ${e.message}`;
+        console.error("API test failed:", e);
+    }
+}
+
+async function testBacktestCall() {
+    const output = document.getElementById('debugOutput');
+    if (!output) {
+        console.log("Debug output element not found");
+        return;
+    }
+    output.innerHTML = '🔄 Calling backtest API...';
+    
+    const testData = {
+        symbol: 'NIFTY',
+        strategy: 'MA_Crossover',
+        startDate: '2024-01-01',
+        endDate: '2024-12-31',
+        timeframe: '15',
+        capital: 100000
+    };
+    
+    console.log('📤 Sending:', testData);
+    output.innerHTML = `📤 Sending: ${JSON.stringify(testData)}<br>`;
+    
+    try {
+        const res = await fetch('/api/backtest/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(testData)
+        });
+        
+        console.log('📥 Response status:', res.status);
+        output.innerHTML += `📥 Response status: ${res.status}<br>`;
+        
+        const data = await res.json();
+        console.log('📥 Response data:', data);
+        alert('Response: ' + JSON.stringify(data, null, 2));
+        output.innerHTML += `📥 Response: ${JSON.stringify(data, null, 2).substring(0, 1000)}`;
+        
+        if (data.success) {
+            output.innerHTML += `<br><br>✅ SUCCESS! Trades: ${data.results?.metrics?.total_trades || 0}`;
+        } else {
+            output.innerHTML += `<br><br>❌ ERROR: ${data.error}`;
+        }
+    } catch(e) {
+        console.error('❌ Error:', e);
+        output.innerHTML += `❌ Fetch Error: ${e.message}`;
+    }
+}
+
+// The main runBacktest function
+window.runBacktest = async function() {
+    console.log("🚀 runBacktest() called!");
+    
+    // Get values from form
+    const symbolElem = document.getElementById('backtestSymbol');
+    const strategyElem = document.getElementById('backtestStrategy');
+    const startDateElem = document.getElementById('backtestStart');
+    const endDateElem = document.getElementById('backtestEnd');
+    const timeframeElem = document.getElementById('backtestTimeframe');
+    const capitalElem = document.getElementById('backtestCapital');
+    
+    if (!symbolElem) {
+        console.error("❌ Form elements not found!");
+        showToast('Error: Form elements not found', true);
+        return;
+    }
+    
+    const symbol = symbolElem.value;
+    const strategy = strategyElem.value;
+    const startDate = startDateElem?.value || '2024-01-01';
+    const endDate = endDateElem?.value || new Date().toISOString().split('T')[0];
+    const timeframe = timeframeElem?.value || '15';
+    const capital = parseInt(capitalElem?.value) || 100000;
+    
+    console.log("📊 Backtest:", { symbol, strategy, startDate, endDate, timeframe, capital });
+    showToast(`Running backtest for ${strategy}...`);
+    
+    const statusElem = document.getElementById('backtestStatus');
+    const resultsElem = document.getElementById('backtestResults');
+    if (statusElem) statusElem.innerHTML = '⏳ Running...';
+    if (resultsElem) resultsElem.style.display = 'block';
+    
+    try {
+        const res = await fetch('/api/backtest/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, strategy, startDate, endDate, timeframe, capital })
+        });
+        
+        const data = await res.json();
+        console.log("Response:", data);
+        
+        if (data.success && data.results) {
+            displayBacktestResults(data.results, data.data_source);
+            showToast('Backtest completed!');
+        } else {
+            showToast('Backtest failed: ' + (data.error || 'Unknown'), true);
+        }
+    } catch(e) {
+        console.error("Error:", e);
+        showToast('Error: ' + e.message, true);
+    }
+    
+    if (statusElem) statusElem.innerHTML = 'Ready';
+};
+
+function displayBacktestResults(results, dataSource) {
+    const metrics = results.metrics || {};
+    
+    const sourceBadge = document.getElementById('dataSourceBadge');
+    if (sourceBadge) sourceBadge.innerHTML = `📡 Source: ${dataSource || 'API'}`;
+    
+    const statsContainer = document.getElementById('backtestStats');
+    if (statsContainer) {
+        statsContainer.innerHTML = `
+            <div class="stat-card"><div class="stat-label">Trades</div><div class="stat-value">${metrics.total_trades || 0}</div></div>
+            <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value ${(metrics.win_rate || 0) >= 50 ? 'positive' : 'negative'}">${(metrics.win_rate || 0).toFixed(1)}%</div></div>
+            <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${(metrics.total_pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(metrics.total_pnl || 0)}</div></div>
+            <div class="stat-card"><div class="stat-label">Return</div><div class="stat-value ${(metrics.total_return || 0) >= 0 ? 'positive' : 'negative'}">${(metrics.total_return || 0).toFixed(2)}%</div></div>
+            <div class="stat-card"><div class="stat-label">Sharpe</div><div class="stat-value">${(metrics.sharpe_ratio || 0).toFixed(2)}</div></div>
+            <div class="stat-card"><div class="stat-label">Max DD</div><div class="stat-value negative">${(metrics.max_drawdown || 0).toFixed(1)}%</div></div>
+        `;
+    }
+    
+    const trades = results.trades || [];
+    const tradesBody = document.getElementById('backtestTradesBody');
+    if (tradesBody) {
+        if (trades.length === 0) {
+            tradesBody.innerHTML = '<tr><td colspan="7" class="empty-state">No trades</tbody>';
+        } else {
+            tradesBody.innerHTML = trades.slice(0, 30).map(t => `
+                <tr>
+                    <td>${t.entry_time || '-'}</td>
+                    <td class="${t.action === 'LONG' ? 'positive' : 'negative'}">${t.action}</td>
+                    <td>₹${(t.entry_price || 0).toFixed(2)}</td>
+                    <td>₹${(t.exit_price || 0).toFixed(2)}</td>
+                    <td>${t.quantity || 0}</td>
+                    <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</span></td>
+                    <td>${t.exit_reason || '-'}</td>
+                </tr>
+            `).join('');
+        }
+    }
+}
+
+// Make functions globally accessible
+window.testAPIConnection = testAPIConnection;
+window.testBacktestCall = testBacktestCall;
+window.displayBacktestResults = displayBacktestResults;
+
+
+
+
+// ============================================
+// ENHANCED BACKTEST FUNCTIONS
+// ============================================
+
+let backtestChart = null;
+
+async function runBacktest() {
+    let symbol = document.getElementById('backtestSymbol').value;
+    let strategy = document.getElementById('backtestStrategy').value;
+    let startDate = document.getElementById('backtestStart').value;
+    let endDate = document.getElementById('backtestEnd').value || new Date().toISOString().split('T')[0];
+    let timeframe = document.getElementById('backtestTimeframe').value;
+    let capital = parseInt(document.getElementById('backtestCapital').value) || 100000;
+    
+    showToast(`Running backtest for ${strategy} on ${symbol}...`);
+    document.getElementById('backtestStatus').innerHTML = '⏳ Running...';
+    document.getElementById('backtestResults').style.display = 'block';
+    document.getElementById('comparisonTable').style.display = 'none';
+    
+    try {
+        let res = await fetch('/api/backtest/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                symbol, strategy, startDate, endDate, timeframe, capital 
+            })
+        });
+        let data = await res.json();
+        
+        if (data.success && data.results) {
+            displayBacktestResults(data.results, data.data_source);
+            showToast('Backtest completed successfully!');
+        } else {
+            showToast('Backtest failed: ' + (data.error || 'Unknown error'), true);
+        }
+    } catch(e) {
+        showToast(e.message, true);
+    }
+    document.getElementById('backtestStatus').innerHTML = 'Ready';
+}
+
+function displayBacktestResults(results, dataSource) {
+    let metrics = results.metrics || {};
+    
+    // Update data source badge
+    document.getElementById('dataSourceBadge').innerHTML = `📡 Data Source: ${dataSource || 'DHAN API'}`;
+    if (dataSource === 'SAMPLE DATA') {
+        document.getElementById('dataSourceBadge').style.background = 'rgba(245, 158, 11, 0.2)';
+        document.getElementById('dataSourceBadge').style.color = 'var(--yellow)';
+    } else {
+        document.getElementById('dataSourceBadge').style.background = 'rgba(0, 229, 160, 0.15)';
+        document.getElementById('dataSourceBadge').style.color = 'var(--green)';
+    }
+    
+    // Display metrics
+    document.getElementById('backtestStats').innerHTML = `
+        <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${metrics.total_trades || 0}</div></div>
+        <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value ${(metrics.win_rate || 0) >= 50 ? 'positive' : 'negative'}">${(metrics.win_rate || 0).toFixed(1)}%</div></div>
+        <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${(metrics.total_pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(metrics.total_pnl || 0)}</div></div>
+        <div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value ${(metrics.total_return || 0) >= 0 ? 'positive' : 'negative'}">${(metrics.total_return || 0).toFixed(2)}%</div></div>
+        <div class="stat-card"><div class="stat-label">Profit Factor</div><div class="stat-value">${(metrics.profit_factor || 0).toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Sharpe Ratio</div><div class="stat-value">${(metrics.sharpe_ratio || 0).toFixed(2)}</div></div>
+        <div class="stat-card"><div class="stat-label">Max Drawdown</div><div class="stat-value negative">${(metrics.max_drawdown || 0).toFixed(1)}%</div></div>
+        <div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value positive">${formatCurrency(metrics.best_trade || 0)}</div></div>
+        <div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value negative">${formatCurrency(metrics.worst_trade || 0)}</div></div>
+        <div class="stat-card"><div class="stat-label">Final Equity</div><div class="stat-value">${formatCurrency(metrics.final_equity || 100000)}</div></div>
+    `;
+    
+    // Trades table
+    let trades = results.trades || [];
+    document.getElementById('backtestTradesBody').innerHTML = trades.slice(0, 50).map(t => `
+        <tr>
+            <td>${t.entry_time || '-'}</td>
+            <td class="${t.action === 'LONG' ? 'positive' : 'negative'}">${t.action || '-'}</td>
+            <td>₹${(t.entry_price || 0).toFixed(2)}</td>
+            <td>₹${(t.exit_price || 0).toFixed(2)}</td>
+            <td>${t.quantity || 0}</td>
+            <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</td>
+            <td>${t.exit_reason || '-'}</td>
+        </tr>
+    `).join('');
+    
+    // Equity curve chart
+    let equityCurve = results.equity_curve || [];
+    if (equityCurve.length > 0 && typeof Chart !== 'undefined') {
+        let ctx = document.getElementById('backtestChart').getContext('2d');
+        if (backtestChart) backtestChart.destroy();
+        backtestChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: equityCurve.map(e => e.time),
+                datasets: [{
+                    label: 'Portfolio Value (₹)',
+                    data: equityCurve.map(e => e.equity),
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    fill: true,
+                    tension: 0.1,
+                    pointRadius: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { labels: { color: '#e0e0e0' } }
+                },
+                scales: {
+                    y: { ticks: { color: '#aaa', callback: v => '₹' + v.toLocaleString() } },
+                    x: { ticks: { color: '#aaa', maxRotation: 45 } }
+                }
+            }
+        });
+    }
+}
+
+async function compareAllStrategies() {
+    let symbol = document.getElementById('compareSymbol').value;
+    let startDate = document.getElementById('compareStart').value;
+    let endDate = document.getElementById('compareEnd').value;
+    
+    showToast(`Comparing all strategies on ${symbol}...`);
+    document.getElementById('backtestResults').style.display = 'block';
+    document.getElementById('comparisonTable').style.display = 'block';
+    
+    try {
+        let res = await fetch('/api/backtest/compare', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, startDate, endDate })
+        });
+        let data = await res.json();
+        
+        if (data.success && data.comparison) {
+            displayComparison(data.comparison);
+            showToast('Comparison completed!');
+        } else {
+            showToast('Comparison failed', true);
+        }
+    } catch(e) {
+        showToast(e.message, true);
+    }
+}
+
+function displayComparison(comparison) {
+    let strategies = Object.entries(comparison);
+    strategies.sort((a, b) => (b[1].total_pnl || 0) - (a[1].total_pnl || 0));
+    
+    document.getElementById('comparisonBody').innerHTML = strategies.map(([name, data]) => `
+        <tr>
+            <td><strong>${data.name || name}</strong></td>
+            <td>${data.total_trades || 0}</td>
+            <td class="${(data.win_rate || 0) >= 50 ? 'positive' : 'negative'}">${(data.win_rate || 0).toFixed(1)}%</td>
+            <td class="${(data.total_pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(data.total_pnl || 0)}</td>
+            <td class="${(data.total_return || 0) >= 0 ? 'positive' : 'negative'}">${(data.total_return || 0).toFixed(2)}%</td>
+            <td>${(data.profit_factor || 0).toFixed(2)}</td>
+            <td>${(data.sharpe_ratio || 0).toFixed(2)}</td>
+            <td class="negative">${(data.max_drawdown || 0).toFixed(1)}%</td>
+        </tr>
+    `).join('');
+}
+
+function exportBacktestResults() {
+    let table = document.getElementById('backtestTradesBody');
+    if (!table || !table.innerText.trim()) {
+        showToast('No data to export', true);
+        return;
+    }
+    
+    let csv = [];
+    let rows = table.querySelectorAll('tr');
+    for (let row of rows) {
+        let cols = row.querySelectorAll('td');
+        let rowData = [];
+        for (let col of cols) {
+            rowData.push('"' + col.innerText.replace(/"/g, '""') + '"');
+        }
+        csv.push(rowData.join(','));
+    }
+    
+    let blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+    let url = URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `backtest_${new Date().toISOString().slice(0,19)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Export complete!');
+}
+
+
+
+
+
+// ============================================
+// UTILITIES
+// ============================================
+function showToast(msg, isErr) {
+    // Create unique ID for this toast
+    const toastId = 'toast_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+    
+    // Create toast element
+    let toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast ${isErr ? 'toast-error' : 'toast-success'}`;
+    toast.style.position = 'fixed';
+    toast.style.right = '20px';
+    toast.style.zIndex = '9999';
+    toast.style.padding = '10px 18px';
+    toast.style.borderRadius = '8px';
+    toast.style.fontSize = '0.8rem';
+    toast.style.backgroundColor = isErr ? 'rgba(255, 71, 87, 0.2)' : 'rgba(0, 229, 160, 0.2)';
+    toast.style.border = isErr ? '1px solid #ff4757' : '1px solid #00e5a0';
+    toast.style.color = isErr ? '#ff4757' : '#00e5a0';
+    toast.style.fontWeight = '500';
+    toast.style.minWidth = '200px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+    toast.textContent = msg;
+    
+    // Calculate position based on existing toasts
+    const toastHeight = 50; // Approximate height per toast
+    const spacing = 10; // Spacing between toasts
+    
+    // Position from bottom - newer messages go ABOVE older ones
+    let bottomOffset = 20; // Start from bottom
+    
+    for (let i = 0; i < activeToasts.length; i++) {
+        const existingToast = document.getElementById(activeToasts[i]);
+        if (existingToast) {
+            bottomOffset += toastHeight + spacing;
+        }
+    }
+    
+    toast.style.bottom = bottomOffset + 'px';
+    
+    // Add to document
+    document.body.appendChild(toast);
+    
+    // Add to active toasts list
+    activeToasts.push(toastId);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+        if (toast && toast.remove) {
+            toast.remove();
+            // Remove from active toasts list
+            activeToasts = activeToasts.filter(id => id !== toastId);
+            // Reposition remaining toasts
+            repositionToasts();
+        }
+    }, 3000);
+}
+
+function repositionToasts() {
+    const toastHeight = 50;
+    const spacing = 10;
+    let bottomOffset = 20;
+    
+    // Get all remaining toasts in order
+    const remainingToasts = activeToasts.filter(id => document.getElementById(id));
+    
+    for (let i = 0; i < remainingToasts.length; i++) {
+        const toast = document.getElementById(remainingToasts[i]);
+        if (toast) {
+            toast.style.bottom = bottomOffset + 'px';
+            bottomOffset += toastHeight + spacing;
+        }
+    }
+}
+
+function formatNumber(n) { return parseFloat(n || 0).toFixed(2); }
+function formatCurrency(n) { return n >= 0 ? `₹${n.toFixed(2)}` : `-₹${Math.abs(n).toFixed(2)}`; }
+function formatOI(n) { n = Math.abs(n || 0); if (n >= 1e7) return (n/1e7).toFixed(2)+'Cr'; if (n >= 1e5) return (n/1e5).toFixed(1)+'L'; if (n >= 1e3) return (n/1e3).toFixed(1)+'K'; return n.toString(); }
+
+function updateClock() {
+    let now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN');
+    let hours = now.getHours(), mins = now.getMinutes();
+    let isOpen = (hours > 9 || (hours === 9 && mins >= 15)) && hours < 15;
+    let statusEl = document.getElementById('marketStatus');
+    statusEl.innerHTML = isOpen ? '● MARKET OPEN' : '● MARKET CLOSED';
+    statusEl.className = `market-status ${isOpen ? '' : 'closed'}`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+
+
+// Add this function with your other functions (near loadTrades, loadMarketData, etc.)
+async function loadBotTrades() {
+    try {
+        const res = await fetch('/api/bot/trades');
+        const data = await res.json();
+        
+        const tbody = document.getElementById('botTradesBody');
+        if (tbody) {
+            if (data.trades && data.trades.length > 0) {
+                tbody.innerHTML = data.trades.slice(0, 30).map(t => `
+                    <tr>
+                        <td>${t.id || '-'}</td>
+                        <td><strong>${t.symbol || '-'}</strong></td>
+                        <td>${t.strategy || '-'}</td>
+                        <td>₹${(t.entry_price || 0).toFixed(2)}</span></td>
+                        <td>₹${(t.exit_price || 0).toFixed(2)}</span></td>
+                        <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</span></td>
+                        <td><span class="badge ${t.status === 'open' ? 'badge-green' : 'badge-blue'}">${t.status || 'closed'}</span></td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No trades found in local database</td></tr>';
+            }
+        }
+    } catch(e) {
+        console.error('Error loading bot trades:', e);
+        const tbody = document.getElementById('botTradesBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading trades</td></tr>';
+    }
+}
+
+
+
+
+// ============================================
+// MARKET DATA
+// ============================================
+async function loadMarketData() {
+    try {
+        let res = await fetch('/api/market');
+        let data = await res.json();
+        let html = Object.entries(data).map(([name, info]) => {
+            let chg = info.change_percent || 0;
+            return `<div class="index-card"><div class="index-name">${name}</div><div class="index-price">₹${info.ltp.toLocaleString()}</div><div class="index-change ${chg > 0 ? 'up' : (chg < 0 ? 'down' : 'neutral')}">${chg > 0 ? '+' : ''}${chg.toFixed(2)}%</div></div>`;
+        }).join('');
+        document.getElementById('indexBar').innerHTML = html;
+    } catch(e) { console.error(e); }
+}
+
+// ============================================
+// TRADES
+// ============================================
+async function loadTrades() {
+    try {
+        let res = await fetch('/api/trades');
+        allTrades = await res.json();
+        let closed = allTrades.filter(t => t.status === 'closed');
+        let open = allTrades.filter(t => t.status === 'open');
+        let totalPnl = closed.reduce((s,t) => s + (t.pnl || 0), 0);
+        let wins = closed.filter(t => (t.pnl || 0) > 0).length;
+        let winRate = closed.length ? (wins / closed.length * 100).toFixed(1) : 0;
+        
+        document.getElementById('statsGrid').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${allTrades.length}</div></div>
+            <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${totalPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalPnl)}</div></div>
+            <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRate}%</div></div>
+            <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value">${open.length}</div></div>
+        `;
+        
+        // Trades table
+        let tbody = document.getElementById('tradesBody');
+        if (!allTrades.length) tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No trades yet</tbody>';
+        else tbody.innerHTML = allTrades.slice(0, 30).map(t => `<tr>
+            <td>${t.trade_id || '-'}</td>
+            <td><strong>${t.symbol || '-'}</strong></td>
+            <td class="${t.position_type === 'LONG' ? 'positive' : 'negative'}">${t.position_type || 'LONG'}</td>
+            <td>₹${formatNumber(t.entry_price)}</td>
+            <td>₹${formatNumber(t.exit_price)}</td>
+            <td>${t.quantity || 0}</td>
+            <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</span></td>
+            <td class="badge ${t.status === 'open' ? 'badge-green' : 'badge-blue'}">${t.status || 'closed'}</span></td>
+        </tr>`).join('');
+        
+        // Positions table
+        let posBody = document.getElementById('positionsBody');
+        if (!open.length) posBody.innerHTML = '<tr><td colspan="7" class="empty-state">No open positions</tbody>';
+        else posBody.innerHTML = open.map(t => `<tr>
+            <td><strong>${t.symbol}</strong></td>
+            <td class="${t.position_type === 'LONG' ? 'positive' : 'negative'}">${t.position_type}</td>
+            <td>₹${formatNumber(t.entry_price)}</td>
+            <td>₹${formatNumber(t.entry_price)}</td>
+            <td>${t.quantity}</td>
+            <td class="neutral">-</span></td>
+            <td><button class="btn-danger" onclick="closePosition('${t.symbol}')" style="padding:2px 8px;">Close</button></td>
+        </tr>`).join('');
+        
+        document.getElementById('tradingOpenCount').innerHTML = open.length;
+        document.getElementById('availableCapital').innerHTML = '₹10,000';
+        
+        // Strategy grid
+        let strats = {};
+        allTrades.forEach(t => { let s = t.strategy || 'UNKNOWN'; if (!strats[s]) strats[s] = { pnl: 0, trades: 0 }; strats[s].pnl += (t.pnl || 0); strats[s].trades++; });
+        document.getElementById('strategyGrid').innerHTML = Object.entries(strats).map(([name,data]) => `<div class="strategy-card"><div class="strategy-name">${name}</div><div class="strategy-stats"><span>P&L: <span class="${data.pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(data.pnl)}</span></span><span>Trades: ${data.trades}</span></div></div>`).join('') || '<div class="empty-state">No data</div>';
+        
+        // P&L Curve
+        let pnls = closed.map(t => parseFloat(t.pnl || 0));
+        if (pnls.length) {
+            let maxVal = Math.max(...pnls, 0);
+            let minVal = Math.min(...pnls, 0);
+            let range = maxVal - minVal || 1;
+            let chartHtml = '<div style="height:120px; display:flex; align-items:flex-end; gap:2px;">' + pnls.slice(-20).map(val => { let h = ((val - minVal) / range) * 110; let color = val >= 0 ? 'var(--green)' : 'var(--red)'; return `<div style="flex:1; height:${Math.max(3, h)}px; background:${color}; border-radius:2px 2px 0 0;" title="₹${val.toFixed(2)}"></div>`; }).join('') + '</div>';
+            document.getElementById('pnlChart').innerHTML = chartHtml;
+            let totalPnlVal = pnls.reduce((a,b) => a+b, 0);
+            let winsCount = pnls.filter(p => p > 0).length;
+            let winRateVal = (winsCount / pnls.length * 100).toFixed(1);
+            document.getElementById('pnlStats').innerHTML = `<div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${totalPnlVal >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalPnlVal)}</div></div><div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${winRateVal}%</div></div><div class="stat-card"><div class="stat-label">Best Trade</div><div class="stat-value positive">${formatCurrency(Math.max(...pnls))}</div></div><div class="stat-card"><div class="stat-label">Worst Trade</div><div class="stat-value negative">${formatCurrency(Math.min(...pnls))}</div></div>`;
+        }
+    } catch(e) { console.error(e); }
+}
+
+// ============================================
+// TRADING ACTIONS
+// ============================================
+async function placeOrder(type) {
+    let symbol = document.getElementById('tradeSymbol').value.trim().toUpperCase();
+    let quantity = parseInt(document.getElementById('tradeQty').value);
+    let price = parseFloat(document.getElementById('tradePrice').value) || 0;
+    if (!symbol) { showToast('Enter a symbol', true); return; }
+    if (!quantity || quantity <= 0) { showToast('Invalid quantity', true); return; }
+    showToast(`Placing ${type} order for ${quantity} ${symbol}...`);
+    try {
+        let res = await fetch('/api/place-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, type, quantity, price }) });
+        let data = await res.json();
+        if (data.success) showToast(data.message);
+        else showToast(`Error: ${data.error}`, true);
+        if (data.success) setTimeout(() => loadTrades(), 1000);
+    } catch(e) { showToast(e.message, true); }
+}
+
+async function closePosition(symbol) {
+    if (!confirm(`Close ${symbol}?`)) return;
+    try { let res = await fetch('/api/close-position', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) }); let data = await res.json(); if (data.success) showToast(`Closed ${symbol}`); loadTrades(); } catch(e) { showToast(e.message, true); }
+}
+
+async function closeAllPositions() {
+    if (!confirm('Close ALL open positions?')) return;
+    try { let res = await fetch('/api/close-all', { method: 'POST' }); let data = await res.json(); if (data.success) showToast(`Closed ${data.closed} positions`); loadTrades(); } catch(e) { showToast(e.message, true); }
+}
+
+// ============================================
+// OPTION CHAIN
+// ============================================
+async function loadOptionChain() {
+    let underlying = document.getElementById('ocUnderlying').value;
+    let expiry = document.getElementById('ocExpiry').value;
+    let tbody = document.getElementById('ocBody');
+    tbody.innerHTML = '<td><td colspan="19" class="empty-state">Loading...</tbody>';
+    try {
+        let res = await fetch(`/api/option-chain?underlying=${underlying}&expiry=${expiry}&num_strikes=12`);
+        let data = await res.json();
+        optionChainData = data;
+        if (data.success) {
+            let liveBadge = document.getElementById('liveBadge');
+            if (data.live) { liveBadge.innerHTML = '● LIVE'; liveBadge.className = 'badge live-badge'; }
+            else { liveBadge.innerHTML = '● SIM'; liveBadge.className = 'badge badge-blue'; }
+            document.getElementById('ocMeta').innerHTML = `<div class="stat-card"><div class="stat-label">SPOT</div><div class="stat-value">₹${data.spot_price.toLocaleString()}</div></div><div class="stat-card"><div class="stat-label">ATM</div><div class="stat-value">${data.atm_strike}</div></div><div class="stat-card"><div class="stat-label">PCR</div><div class="stat-value ${data.pcr > 1.2 ? 'positive' : (data.pcr < 0.8 ? 'negative' : '')}">${data.pcr}</div></div><div class="stat-card"><div class="stat-label">VIX</div><div class="stat-value">${data.vix}</div></div>`;
+            let html = '';
+            for (let s of data.strikes) {
+                html += `<tr class="${s.strike === data.atm_strike ? 'atm-row' : ''}">
+                    <td class="${s.ce.signal.includes('BULLISH') ? 'signal-bullish' : (s.ce.signal.includes('BEARISH') ? 'signal-bearish' : '')}">${s.ce.signal}</td>
+                    <td>${s.ce.vega}</td><td>${s.ce.gamma}</td><td style="color:var(--red);">${s.ce.theta}</td>
+                    <td>${s.ce.delta}</td><td>${s.ce.iv}%</td>
+                    <td class="${s.ce.oi_change >= 0 ? 'positive' : 'negative'}">${s.ce.oi_change > 0 ? '+' : ''}${formatOI(s.ce.oi_change)}</td>
+                    <td>${formatOI(s.ce.oi)}</td><td style="color:var(--green);">₹${s.ce.ltp}</td>
+                    <td style="font-weight:bold;">${s.strike}</td>
+                    <td style="color:var(--red);">₹${s.pe.ltp}</td><td>${formatOI(s.pe.oi)}</td>
+                    <td class="${s.pe.oi_change >= 0 ? 'positive' : 'negative'}">${s.pe.oi_change > 0 ? '+' : ''}${formatOI(s.pe.oi_change)}</td>
+                    <td>${s.pe.iv}%</td><td>${s.pe.delta}</td><td style="color:var(--red);">${s.pe.theta}</td>
+                    <td>${s.pe.gamma}</td><td>${s.pe.vega}</td>
+                    <td class="${s.pe.signal.includes('BULLISH') ? 'signal-bullish' : (s.pe.signal.includes('BEARISH') ? 'signal-bearish' : '')}">${s.pe.signal}</td>
+                </tr>`;
+            }
+            tbody.innerHTML = html;
+            renderGreeks();
+            renderStrikeSelector();
+            scanOIAlerts();
+        }
+    } catch(e) { console.error(e); tbody.innerHTML = '<tr><td colspan="19" class="empty-state">Error loading</tbody>'; }
+}
+
+// ============================================
+// GREEKS
+// ============================================
+function setGreeksMetric(metric) { greeksMetric = metric; document.querySelectorAll('.greeks-btn').forEach(btn => { btn.classList.remove('active'); if (btn.dataset.metric === metric) btn.classList.add('active'); }); renderGreeks(); }
+function renderGreeks() {
+    if (!optionChainData || !optionChainData.strikes) { document.getElementById('greeksBody').innerHTML = '<tr><td colspan="6" class="empty-state">Load Option Chain first</tbody>'; return; }
+    let strikes = optionChainData.strikes;
+    let atmStrike = optionChainData.atm_strike;
+    let maxVal = Math.max(1, ...strikes.flatMap(s => [Math.abs(s.ce[greeksMetric] || 0), Math.abs(s.pe[greeksMetric] || 0)]));
+    let html = strikes.map(s => {
+        let isAtm = s.strike === atmStrike;
+        let ceVal = s.ce[greeksMetric] || 0;
+        let peVal = s.pe[greeksMetric] || 0;
+        let intensity = Math.min(0.8, Math.abs(ceVal) / maxVal);
+        let ceColor = ceVal >= 0 ? `rgba(0,200,100,${0.3+intensity*0.5})` : `rgba(200,50,50,${0.3+intensity*0.5})`;
+        let peColor = peVal >= 0 ? `rgba(0,200,100,${0.3+intensity*0.5})` : `rgba(200,50,50,${0.3+intensity*0.5})`;
+        let fmt = (v) => greeksMetric === 'oi' ? formatOI(v) : (greeksMetric === 'iv' ? v.toFixed(1)+'%' : v.toFixed(4));
+        return `<tr><td style="${isAtm ? 'font-weight:700;color:var(--green);' : ''}">${s.strike}${isAtm ? ' ◀' : ''}</td>
+            <td>${fmt(ceVal)}</td><td style="background:${ceColor}; border-radius:4px;">${fmt(ceVal)}</td>
+            <td style="background:${isAtm ? 'rgba(168,85,247,0.2)' : 'transparent'}">${isAtm ? 'ATM' : '—'}</td>
+            <td style="background:${peColor}; border-radius:4px;">${fmt(peVal)}</td><td>${fmt(peVal)}</td></tr>`;
+    }).join('');
+    document.getElementById('greeksBody').innerHTML = html;
+}
+
+// ============================================
+// STRADDLE
+// ============================================
+function toggleStraddleType() { straddleType = straddleType === 'straddle' ? 'strangle' : 'straddle'; document.querySelector('#panel-optionchain .badge-yellow').innerHTML = straddleType === 'straddle' ? 'Switch to Strangle' : 'Switch to Straddle'; document.getElementById('strategyType').innerHTML = `Current: ${straddleType.toUpperCase()}`; selectedStrikes = []; renderStrikeSelector(); }
+function renderStrikeSelector() { if (!optionChainData || !optionChainData.strikes) { document.getElementById('strikeSelector').innerHTML = '<div class="empty-state">Load Option Chain first</div>'; document.getElementById('calcResults').style.display = 'none'; return; } let selector = document.getElementById('strikeSelector'); selector.innerHTML = `<div style="font-size:0.7rem; color:var(--text-secondary); margin-bottom:6px;">${straddleType === 'straddle' ? 'Click a strike for STRADDLE' : 'Click CE then PE for STRANGLE'}</div>` + optionChainData.strikes.map(s => `<div class="strike-chip ${selectedStrikes.includes(s.strike) ? 'selected' : ''}" onclick="selectStrike(${s.strike})">${s.strike}</div>`).join(''); calculateStraddle(); }
+function selectStrike(strike) { let max = straddleType === 'straddle' ? 1 : 2; if (selectedStrikes.includes(strike)) { selectedStrikes = selectedStrikes.filter(s => s !== strike); } else { if (selectedStrikes.length >= max) selectedStrikes.shift(); selectedStrikes.push(strike); } renderStrikeSelector(); }
+function calculateStraddle() { if (!optionChainData || selectedStrikes.length === 0) { document.getElementById('calcResults').style.display = 'none'; return; } let ceStrike, peStrike, cePremium=0, pePremium=0; let strikesMap = {}; optionChainData.strikes.forEach(s => { strikesMap[s.strike] = s; }); if (straddleType === 'straddle') { ceStrike = peStrike = selectedStrikes[0]; let s = strikesMap[ceStrike]; if (s) { cePremium = s.ce.ltp; pePremium = s.pe.ltp; } } else { if (selectedStrikes.length < 2) { document.getElementById('calcResults').style.display = 'none'; return; } let sorted = [...selectedStrikes].sort((a,b)=>a-b); peStrike = sorted[0]; ceStrike = sorted[1]; let ceS = strikesMap[ceStrike], peS = strikesMap[peStrike]; if (ceS) cePremium = ceS.ce.ltp; if (peS) pePremium = peS.pe.ltp; } let totalPremium = cePremium + pePremium; document.getElementById('calcResults').style.display = 'grid'; document.getElementById('calcStrategy').innerHTML = straddleType.toUpperCase(); document.getElementById('calcCEStrike').innerHTML = ceStrike; document.getElementById('calcPEStrike').innerHTML = peStrike; document.getElementById('calcCEPremium').innerHTML = `₹${cePremium.toFixed(2)}`; document.getElementById('calcPEPremium').innerHTML = `₹${pePremium.toFixed(2)}`; document.getElementById('calcTotalPremium').innerHTML = `₹${totalPremium.toFixed(2)}`; document.getElementById('calcUBE').innerHTML = `₹${(ceStrike + totalPremium).toFixed(0)}`; document.getElementById('calcLBE').innerHTML = `₹${(peStrike - totalPremium).toFixed(0)}`; document.getElementById('calcMaxLoss').innerHTML = `-₹${totalPremium.toFixed(2)}`; document.getElementById('calcProfitZone').innerHTML = `< ${(peStrike - totalPremium).toFixed(0)} or > ${(ceStrike + totalPremium).toFixed(0)}`; }
+
+// ============================================
+// OI ALERTS
+// ============================================
+function scanOIAlerts() { if (!optionChainData || !optionChainData.strikes) { document.getElementById('alertsFeed').innerHTML = '<div class="empty-state">Load Option Chain first</div>'; return; } let threshold = parseInt(document.getElementById('oiThreshold').value) || 500; let alerts = []; optionChainData.strikes.forEach(s => { if (Math.abs(s.ce.oi_change) >= threshold) alerts.push({ type: s.ce.oi_change > 0 ? 'bullish' : 'bearish', icon: s.ce.oi_change > 0 ? '🟢' : '🔴', title: `${optionChainData.underlying} ${s.strike} CE`, desc: `OI Change: ${s.ce.oi_change > 0 ? '+' : ''}${formatOI(s.ce.oi_change)} | LTP: ₹${s.ce.ltp}`, val: `${s.ce.oi_change > 0 ? '+' : ''}${formatOI(s.ce.oi_change)}` }); if (Math.abs(s.pe.oi_change) >= threshold) alerts.push({ type: s.pe.oi_change > 0 ? 'bearish' : 'bullish', icon: s.pe.oi_change > 0 ? '🟢' : '🔴', title: `${optionChainData.underlying} ${s.strike} PE`, desc: `OI Change: ${s.pe.oi_change > 0 ? '+' : ''}${formatOI(s.pe.oi_change)} | LTP: ₹${s.pe.ltp}`, val: `${s.pe.oi_change > 0 ? '+' : ''}${formatOI(s.pe.oi_change)}` }); }); alerts.sort((a,b) => Math.abs(parseFloat(b.val)) - Math.abs(parseFloat(a.val))); let feed = document.getElementById('alertsFeed'); if (!alerts.length) feed.innerHTML = `<div class="empty-state">No significant OI changes above ${formatOI(threshold)} threshold</div>`; else feed.innerHTML = alerts.slice(0,15).map(a => `<div class="alert-item ${a.type}"><div style="font-size:1.1rem;">${a.icon}</div><div style="flex:1;"><div><strong>${a.title}</strong></div><div style="font-size:0.65rem;">${a.desc}</div></div><div class="${a.type === 'bullish' ? 'positive' : 'negative'}">${a.val}</div></div>`).join(''); }
+
+// ============================================
+// BACKTEST
+// ============================================
+async function runBacktest() {
+    let symbol = document.getElementById('backtestSymbol').value;
+    let strategy = document.getElementById('backtestStrategy').value;
+    let startDate = document.getElementById('backtestStart').value;
+    let endDate = document.getElementById('backtestEnd').value || new Date().toISOString().split('T')[0];
+    showToast('Running backtest...');
+    document.getElementById('backtestStatus').innerHTML = '⏳ Running...';
+    document.getElementById('backtestResults').style.display = 'block';
+    try {
+        let res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, strategy, startDate, endDate }) });
+        let data = await res.json();
+        if (data.success && data.results) {
+            let metrics = data.results.metrics || {};
+            document.getElementById('backtestStats').innerHTML = `<div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${metrics.total_trades || 0}</div></div><div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value ${metrics.win_rate >= 50 ? 'positive' : 'negative'}">${metrics.win_rate || 0}%</div></div><div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${metrics.total_pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(metrics.total_pnl || 0)}</div></div><div class="stat-card"><div class="stat-label">Total Return</div><div class="stat-value ${metrics.total_return >= 0 ? 'positive' : 'negative'}">${(metrics.total_return || 0).toFixed(2)}%</div></div>`;
+            let trades = data.results.trades || [];
+            document.getElementById('backtestTradesBody').innerHTML = trades.slice(0, 30).map(t => `<tr><td>${t.entry_time || '-'}</td><td class="${t.action === 'LONG' ? 'positive' : 'negative'}">${t.action}</td><td>₹${(t.entry_price || 0).toFixed(2)}</td><td>₹${(t.exit_price || 0).toFixed(2)}</td><td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</td></tr>`).join('');
+            showToast('Backtest completed!');
+        } else { showToast('Backtest failed', true); }
+    } catch(e) { showToast(e.message, true); }
+    document.getElementById('backtestStatus').innerHTML = 'Ready';
+}
+
+// ============================================
+// PAPER TRADING (Simplified - keep existing API endpoints)
+// ============================================
+// Replace loadPaperData with this REAL version
+async function loadPaperData() {
+    try {
+        // Load summary
+        let summaryRes = await fetch('/api/paper/summary');
+        let summary = await summaryRes.json();
+        
+        document.getElementById('paperStats').innerHTML = `
+            <div class="stat-card"><div class="stat-label">Balance</div><div class="stat-value">₹${(summary.current_balance || 100000).toLocaleString()}</div></div>
+            <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${(summary.total_pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(summary.total_pnl || 0)}</div></div>
+            <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">${(summary.win_rate || 0).toFixed(1)}%</div></div>
+            <div class="stat-card"><div class="stat-label">Active Positions</div><div class="stat-value">${summary.active_positions || 0}</div></div>
+        `;
+        
+        // Load positions
+        let positionsRes = await fetch('/api/paper/positions');
+        let positions = await positionsRes.json();
+        
+        document.getElementById('paperPositionsBody').innerHTML = positions.map(p => `
+            <tr>
+                <td><strong>${p.symbol}</strong></span></td>
+                <td class="${p.position_type === 'LONG' ? 'positive' : 'negative'}">${p.position_type}</span></td>
+                <td>₹${p.entry_price.toFixed(2)}</span></td>
+                <td>${p.quantity}</span></td>
+                <td><button class="btn-danger" onclick="closePaperPosition('${p.symbol}')">Close</button></span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="5" class="empty-state">No active positions</tbody>';
+        
+        // Load history
+        let historyRes = await fetch('/api/paper/history');
+        let history = await historyRes.json();
+        
+        document.getElementById('paperHistoryBody').innerHTML = history.slice(0, 30).map(h => `
+            <tr>
+                <td>${h.entry_time?.slice(0, 10) || '-'}</span></span></td>
+                <td>${h.symbol}</span></span></td>
+                <td class="${h.position_type === 'LONG' ? 'positive' : 'negative'}">${h.position_type}</span></span></td>
+                <td>₹${h.entry_price.toFixed(2)}</span></span></td>
+                <td>₹${h.exit_price?.toFixed(2) || '-'}</span></span></td>
+                <td class="${(h.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(h.pnl || 0)}</span></span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" class="empty-state">No trade history</tbody>';
+        
+    } catch(e) {
+        console.error('Error loading paper data:', e);
+        showToast('Error loading paper data', true);
+    }
+}
+
+
+// Update placePaperOrder
+async function placePaperOrder() {
+    let symbol = document.getElementById('paperSymbol').value;
+    let type = document.getElementById('paperType').value;
+    let qty = parseInt(document.getElementById('paperQty').value);
+    let price = parseFloat(document.getElementById('paperPrice').value) || 0;
+    
+    if (!symbol || qty <= 0) {
+        showToast('Invalid symbol or quantity', true);
+        return;
+    }
+    
+    showToast(`Placing paper order...`);
+    try {
+        let res = await fetch('/api/paper/place', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol, type, quantity: qty, price })
+        });
+        let data = await res.json();
+        showToast(data.message, !data.success);
+        if (data.success) loadPaperData();
+    } catch(e) {
+        showToast(e.message, true);
+    }
+}
+
+// Update closePaperPosition
+async function closePaperPosition(symbol) {
+    if (!confirm(`Close paper position ${symbol}?`)) return;
+    try {
+        let res = await fetch('/api/paper/close', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ symbol })
+        });
+        let data = await res.json();
+        showToast(data.message, !data.success);
+        loadPaperData();
+    } catch(e) {
+        showToast(e.message, true);
+    }
+}
+
+// Update resetPaperAccount
+async function resetPaperAccount() {
+    if (!confirm('Reset paper trading account? This will clear all history.')) return;
+    try {
+        let res = await fetch('/api/paper/reset', { method: 'POST' });
+        let data = await res.json();
+        showToast(data.message, !data.success);
+        loadPaperData();
+    } catch(e) {
+        showToast(e.message, true);
+    }
+}
+
+
+
+// ============================================
+// OPTION CONTROL
+// ============================================
+async function toggleOptionTrading() { try { let res = await fetch('/api/option/toggle', { method: 'POST' }); let data = await res.json(); optionTradingEnabled = data.enabled; let statusEl = document.getElementById('optionMasterStatus'); statusEl.innerHTML = optionTradingEnabled ? '🟢 ACTIVE' : '🔴 INACTIVE'; statusEl.className = `stat-value ${optionTradingEnabled ? 'positive' : 'negative'}`; showToast(`Option trading ${optionTradingEnabled ? 'ENABLED' : 'DISABLED'}`); } catch(e) { showToast(e.message, true); } }
+async function loadOptionData() {
+    try {
+        let summary = await (await fetch('/api/option/summary')).json();
+        document.getElementById('optionPositionCount').innerHTML = summary.active_positions || 0;
+        let pnlElem = document.getElementById('optionTotalPnl'); pnlElem.innerHTML = `₹${(summary.total_pnl || 0).toFixed(2)}`; pnlElem.className = `stat-value ${summary.total_pnl >= 0 ? 'positive' : 'negative'}`;
+        document.getElementById('optionTodayPremium').innerHTML = `₹${(summary.today_premium || 0).toFixed(2)}`;
+        let positions = await (await fetch('/api/option/positions')).json();
+        document.getElementById('optionPositionsBody').innerHTML = positions.map(p => `<tr>
+            <td><strong>${p.symbol}</strong></td><td class="${p.type === 'CALL' ? 'positive' : 'negative'}">${p.type}</td>
+            <td>${p.strike || 0}</td><td>₹${p.entry_price.toFixed(2)}</td>
+            <td>₹${p.current_price.toFixed(2)}</td><td>${p.lots || 0}</td>
+            <td class="${p.pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(p.pnl)}</span></td>
+            <td><button class="btn-danger" onclick="closeOptionPosition('${p.symbol}')">Close</button></td>
+        </tr>`).join('') || '<tr><td colspan="8" class="empty-state">No active option positions</tbody>';
+    } catch(e) { console.error(e); }
+}
+async function closeOptionPosition(symbol) { if (!confirm(`Close ${symbol}?`)) return; try { let res = await fetch('/api/option/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) }); let data = await res.json(); if (data.success) showToast(`Closed ${symbol}`); loadOptionData(); loadTrades(); } catch(e) { showToast(e.message, true); } }
+async function closeAllOptionPositions() { if (!confirm('Close ALL option positions?')) return; try { let res = await fetch('/api/option/close-all', { method: 'POST' }); let data = await res.json(); showToast(`Closed ${data.closed} option positions`); loadOptionData(); } catch(e) { showToast(e.message, true); } }
+
+// ============================================
+// LOGS
+// ============================================
+async function loadLogs() {
+    let logType = document.getElementById('logType').value;
+    try { let res = await fetch(`/api/logs/${logType}`); let data = await res.json(); document.getElementById('logContent').innerHTML = (data.logs || ['No logs']).map(log => `<div style="padding: 8px; border-bottom: 1px solid var(--border);">${escapeHtml(log)}</div>`).join(''); } catch(e) { console.error(e); } }
+function escapeHtml(text) { let div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+// ============================================
+// COMMANDS & TELEGRAM
+// ============================================
+function renderCommands() {
+    document.getElementById('commandsGrid').innerHTML = COMMANDS.map(c => `<div class="command-card"><div class="command-name">${c.cmd}</div><div class="command-desc">${c.desc}</div></div>`).join('');
+    document.getElementById('watchlist').innerHTML = WATCHLIST.map(s => `<span class="watchlist-tag" onclick="document.getElementById('tradeSymbol').value='${s}'">${s}</span>`).join('');
+}
+let tgConnected = false;
+function connectTelegram() { showToast('Telegram demo mode', false); tgConnected = true; document.getElementById('tgDot').style.background = 'var(--green)'; document.getElementById('tgStatus').innerHTML = 'Connected'; addTelegramMessage('info', '✅ Dashboard connected'); }
+function testTelegram() { addTelegramMessage('info', '🟢 Test ping'); showToast('Test sent'); }
+function sendTelegramMessage() { let msg = document.getElementById('tgMessage').value.trim(); if (!msg) return; addTelegramMessage('info', msg); document.getElementById('tgMessage').value = ''; }
+function addTelegramMessage(type, text) { let icons = { trade: '💹', alert: '⚠️', error: '🚨', info: '📊' }; tgMessages.unshift({ icon: icons[type] || '📢', text, time: new Date().toLocaleTimeString() }); if (tgMessages.length > 50) tgMessages.pop(); let feed = document.getElementById('tgFeed'); if (!tgMessages.length) feed.innerHTML = '<div class="empty-state">No alerts yet</div>'; else feed.innerHTML = tgMessages.map(m => `<div class="tg-message"><div>${m.icon} ${m.text}</div><div class="tg-message-time">${m.time}</div></div>`).join(''); }
+
+
+
+// ============================================
+// TAB SWITCHING - FIX
+// ============================================
+function initTabs() {
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+    
+    console.log('Initializing tabs... Found', tabs.length, 'tabs');
+    
+    tabs.forEach(tab => {
+        tab.removeEventListener('click', tab._listener);
+        
+        const listener = function(e) {
+            const tabName = this.getAttribute('data-tab');
+            console.log('Tab clicked:', tabName);
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            
+            panels.forEach(panel => panel.classList.remove('active'));
+            
+            const activePanel = document.getElementById(`panel-${tabName}`);
+            if (activePanel) {
+                activePanel.classList.add('active');
+                
+                if (tabName === 'optionchain' && !optionChainData) loadOptionChain();
+                if (tabName === 'logs') loadLogs();
+                if (tabName === 'optioncontrol') loadOptionData();
+                if (tabName === 'paper') loadPaperData();
+            }
+        };
+        
+        tab._listener = listener;
+        tab.addEventListener('click', listener);
+    });
+}
+
+// Initialize tabs
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initTabs);
+} else {
+    initTabs();
+}
+
+
+
+async function loadConsolidatedPositions() {
+    try {
+        const res = await fetch('/api/consolidated/positions');
+        const data = await res.json();
+        
+        const tbody = document.getElementById('consolidatedBody');
+        if (tbody && data.consolidated) {
+            if (data.consolidated.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No positions</td></tr>';
+            } else {
+                tbody.innerHTML = data.consolidated.map(p => `
+                    <tr>
+                        <td><strong>${p.symbol}</strong></td>
+                        <td>${p.quantity}</td>
+                        <td>₹${p.buy_avg_price.toFixed(2)}</span></td>
+                        <td>₹${p.sell_avg_price.toFixed(2)}</span></td>
+                        <td class="${p.pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(p.pnl)}</span></td>
+                    </tr>
+                `).join('');
+            }
+        }
+    } catch(e) {
+        console.error('Error loading consolidated positions:', e);
+    }
+}
+
+
+async function loadBrokerOrders() {
+    try {
+        const res = await fetch('/api/broker/orders');
+        const data = await res.json();
+        
+        const tbody = document.getElementById('brokerOrdersBody');
+        if (tbody) {
+            if (data.orders && data.orders.length > 0) {
+                tbody.innerHTML = data.orders.slice(0, 50).map(o => `
+                    <tr>
+                        <td>${o.entry_time ? o.entry_time.slice(11, 19) : '-'}</td>
+                        <td><strong>${o.symbol}</strong></td>
+                        <td class="${o.transaction_type === 'BUY' ? 'positive' : 'negative'}">${o.transaction_type || '-'}</td>
+                        <td>${o.filled_quantity || o.quantity || 0} / ${o.quantity || 0}</td>
+                        <td>₹${(o.average_price || o.price || 0).toFixed(2)}</span></td>
+                        <td><span class="badge ${o.order_status === 'TRADED' ? 'badge-green' : 'badge-yellow'}">${o.order_status || '-'}</span></td>
+                        <td>${o.order_type || '-'}${o.product_type ? ' / ' + o.product_type : ''}</td>
+                    </tr>
+                `).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No orders found from broker</tbody>';
+            }
+        }
+    } catch(e) {
+        console.error('Error loading broker orders:', e);
+        const tbody = document.getElementById('brokerOrdersBody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="7" class="empty-state">Error loading orders</tbody>';
+    }
+}
+
+
+
+let allCombinedTrades = [];
+let currentFilter = 'all';
+
+async function loadCombinedAnalysis() {
+    try {
+        const res = await fetch('/api/trades/combined');
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            // Update stats
+            document.getElementById('autoTradeCount').innerHTML = data.auto_stats.total_trades;
+            document.getElementById('autoPnl').innerHTML = formatCurrency(data.auto_stats.total_pnl);
+            document.getElementById('autoWinRate').innerHTML = `${data.auto_stats.win_rate}%`;
+            
+            document.getElementById('manualTradeCount').innerHTML = data.manual_stats.total_trades;
+            document.getElementById('manualPnl').innerHTML = formatCurrency(data.manual_stats.total_pnl);
+            document.getElementById('manualWinRate').innerHTML = `${data.manual_stats.win_rate}%`;
+            
+            document.getElementById('overallTradeCount').innerHTML = data.overall_stats.total_trades;
+            document.getElementById('overallPnl').innerHTML = formatCurrency(data.overall_stats.total_pnl);
+            document.getElementById('overallWinRate').innerHTML = `${data.overall_stats.win_rate}%`;
+            
+            // Strategy performance table
+            const strategyBody = document.getElementById('strategyAnalysisBody');
+            if (data.strategy_performance && data.strategy_performance.length > 0) {
+                strategyBody.innerHTML = data.strategy_performance.map(s => `
+                    <tr>
+                        <td><strong>${s.strategy}</strong></td>
+                        <td><span class="badge ${s.type === 'AUTO' ? 'badge-blue' : 'badge-yellow'}">${s.type}</span></td>
+                        <td>${s.trades}</td>
+                        <td class="${s.total_pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(s.total_pnl)}</td>
+                        <td class="${s.win_rate >= 50 ? 'positive' : 'negative'}">${s.win_rate}%</td>
+                    </tr>
+                `).join('');
+            }
+            
+            // Store all trades for filtering
+            allCombinedTrades = data.all_trades || [];
+            applyTradeFilter();
+        }
+    } catch(e) {
+        console.error('Error loading combined analysis:', e);
+    }
+}
+
+function filterTrades(type) {
+    currentFilter = type;
+    applyTradeFilter();
+}
+
+function applyTradeFilter() {
+    let filteredTrades = allCombinedTrades;
+    if (currentFilter !== 'all') {
+        filteredTrades = allCombinedTrades.filter(t => t.trade_type === currentFilter);
+    }
+    
+    const tbody = document.getElementById('combinedTradesBody');
+    if (filteredTrades.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" class="empty-state">No trades found</td></tr>';
+    } else {
+        tbody.innerHTML = filteredTrades.slice(0, 50).map(t => `
+            <tr>
+                <td>${t.id || '-'}</td>
+                <td>${t.entry_time ? t.entry_time.slice(5, 16) : '-'}</td>
+                <td><strong>${t.symbol || '-'}</strong></td>
+                <td class="${t.position_type === 'LONG' ? 'positive' : 'negative'}">${t.position_type || '-'}</td>
+                <td><span class="badge ${t.trade_type === 'AUTO' ? 'badge-blue' : 'badge-yellow'}">${t.strategy || '-'}</span></td>
+                <td>₹${(t.entry_price || 0).toFixed(2)}</td>
+                <td>₹${(t.exit_price || 0).toFixed(2)}</td>
+                <td>${t.quantity || 0}</td>
+                <td class="${(t.pnl || 0) >= 0 ? 'positive' : 'negative'}">${formatCurrency(t.pnl || 0)}</td>
+                <td><span class="badge ${t.status === 'open' ? 'badge-green' : 'badge-blue'}">${t.status || '-'}</span></td>
+            </tr>
+        `).join('');
+    }
+}
+
+
+
+
+async function updateTopStats() {
+    try {
+        const res = await fetch('/api/consolidated/positions');
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            const totalTrades = data.consolidated.length;
+            const totalPnl = data.total_pnl;
+            
+            const statsGrid = document.getElementById('statsGrid');
+            if (statsGrid) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card"><div class="stat-label">Total Trades</div><div class="stat-value">${totalTrades}</div></div>
+                    <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-value ${totalPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalPnl)}</div></div>
+                    <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">--</div></div>
+                    <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value">0</div></div>
+                `;
+            }
+        }
+    } catch(e) {
+        console.error('Error updating stats:', e);
+    }
+}
+
+
+
+async function loadLivePositions() {
+    try {
+        // Get TODAY's P&L for top stats
+        const todayRes = await fetch('/api/todays/pnl');
+        const todayData = await todayRes.json();
+        
+        let totalTrades = todayData.todays_trades || 0;
+        let totalPnl = todayData.todays_pnl || 0;
+        
+        // Update stats grid with today's P&L
+        const statsGrid = document.getElementById('statsGrid');
+        if (statsGrid) {
+            statsGrid.innerHTML = `
+                <div class="stat-card"><div class="stat-label">Total Trades (Today)</div><div class="stat-value">${totalTrades}</div></div>
+                <div class="stat-card"><div class="stat-label">Total P&L (Today)</div><div class="stat-value ${totalPnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(totalPnl)}</div></div>
+                <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-value">--</div></div>
+                <div class="stat-card"><div class="stat-label">Open Positions</div><div class="stat-value">0</div></div>
+            `;
+        }
+        
+        // Get live positions for the table
+        const liveRes = await fetch('/api/live/positions');
+        const liveData = await liveRes.json();
+        
+        const posBody = document.getElementById('positionsBody');
+        if (posBody) {
+            if (liveData.positions && liveData.positions.length > 0) {
+                posBody.innerHTML = liveData.positions.map(p => `
+                    <tr>
+                        <td><strong>${p.symbol}</strong></td>
+                        <td class="${p.position_type === 'LONG' ? 'positive' : 'negative'}">${p.position_type}</td>
+                        <td>₹${p.entry_price.toFixed(2)}</span></td>
+                        <td>₹${p.current_price.toFixed(2)}</span></td>
+                        <td>${p.quantity}</td>
+                        <td class="${p.pnl >= 0 ? 'positive' : 'negative'}">${formatCurrency(p.pnl)}</span></td>
+                        <td><button class="btn-danger" onclick="closePosition('${p.symbol}')" style="padding:2px 8px;">Close</button></td>
+                    </tr>
+                `).join('');
+            } else {
+                posBody.innerHTML = '<tr><td colspan="7" class="empty-state">No open positions</tbody>';
+            }
+        }
+        
+    } catch(e) {
+        console.error('Error loading live positions:', e);
+    }
+}
+
+
+
+
+async function syncBrokerOrders() {
+    showToast('Syncing broker orders to local database...');
+    try {
+        const res = await fetch('/api/sync/orders');
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+            showToast(`✅ Synced ${data.synced} new orders`);
+            // Refresh all data after sync
+            setTimeout(() => {
+                loadCombinedAnalysis();
+                loadBotTrades();
+                loadBrokerOrders();
+            }, 1000);
+        } else {
+            showToast(`❌ Sync failed: ${data.message}`, true);
+        }
+    } catch(e) {
+        showToast(`❌ Error: ${e.message}`, true);
+    }
+}
+
+
+// ============================================
+// REFRESH & NAVIGATION
+// ============================================
+async function refreshAll() {
+    countdown = 30;
+    await Promise.all([
+        loadMarketData(), 
+        loadLivePositions(),
+        loadPaperData(), 
+        loadOptionData(),
+        loadTradingMode(),
+        loadBotTrades(),
+        loadBrokerOrders(),
+        loadCombinedAnalysis(),
+        loadConsolidatedPositions(),
+        updateTopStats(),  // ← ADD THIS
+        syncBrokerOrders()
+    ]);
+
+    if (document.querySelector('.tab.active')?.dataset.tab === 'optionchain' && !isLoading) loadOptionChain();
+    if (document.querySelector('.tab.active')?.dataset.tab === 'greeks' && optionChainData) renderGreeks();
+}
+
+
+
+// Countdown timer - one line fix
+setInterval(() => {
+    if (countdown > 0) {
+        countdown--;
+        const cdElement = document.getElementById('countdown');
+        if (cdElement) cdElement.innerHTML = `⟳ ${countdown}s`;
+        
+        if (countdown === 0) {
+            countdown = 30;
+            refreshAll();
+        }
+    }
+}, 1000);
+
+
+
+// ============================================
+// INITIAL LOAD
+// ============================================
+renderCommands();
+refreshAll();
+setInterval(() => { if (document.querySelector('.tab.active')?.dataset.tab === 'optionchain') loadOptionChain(); }, 30000);
+</script>
+</body>
+</html>

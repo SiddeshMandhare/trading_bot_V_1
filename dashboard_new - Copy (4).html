@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoTrader Matrix Pro — Elite Trading Suite</title>
+    
+    <!-- Professional Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Core Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/countup.js/2.8.0/countUp.umd.js"></script>
+
+    <style>
+        /* Light/Dark Theme Variables */
+        [data-theme="dark"] {
+            --bg-body: #080a12;
+            --bg-card: rgba(16, 20, 35, 0.85);
+            --bg-panel: rgba(10, 12, 22, 0.95);
+            --bg-input: #1a1a2e;
+            --border: rgba(0, 242, 255, 0.2);
+            --border-light: rgba(0, 242, 255, 0.1);
+            --accent: #00f2ff;
+            --green: #00ff9d;
+            --red: #ff0055;
+            --purple: #bc13fe;
+            --yellow: #ffaa00;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #5a6380;
+            --card-bg: rgba(16, 20, 35, 0.7);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f0f2f5;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --bg-panel: #ffffff;
+            --bg-input: #ffffff;
+            --border: rgba(0, 0, 0, 0.15);
+            --border-light: rgba(0, 0, 0, 0.08);
+            --accent: #0f172a;
+            --green: #10b981;
+            --red: #ef4444;
+            --purple: #8b5cf6;
+            --yellow: #f59e0b;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            font-size: 13px;
+        }
+
+        /* 3D Visuals */
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; transition: opacity 0.3s; }
+        [data-theme="light"] #particles-js { opacity: 0.3; }
+        #three-canvas { position: fixed; top: 0; left: 0; z-index: -2; opacity: 0.3; pointer-events: none; }
+
+        /* Glass Layout */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+
+        /* Header */
+        .header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 12px 30px; background: var(--bg-panel);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo { 
+            font-weight: 800; font-size: 1.4rem; 
+            background: linear-gradient(135deg, var(--green), var(--accent));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        /* Modern Theme Toggle Switch */
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #1e293b;
+            transition: 0.4s;
+            border-radius: 30px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "🌙";
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.4s;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+        }
+        input:checked + .slider {
+            background-color: #f59e0b;
+        }
+        input:checked + .slider:before {
+            content: "☀️";
+            transform: translateX(28px);
+        }
+        .theme-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Market Ticker */
+        .ticker-wrap {
+            background: var(--bg-panel);
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            overflow: hidden;
+            white-space: nowrap;
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .ticker-content { display: inline-block; animation: tickerScroll 45s linear infinite; }
+        @keyframes tickerScroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
+
+        /* Grid System */
+        .dashboard-grid {
+            display: grid; grid-template-columns: repeat(12, 1fr); gap: 15px; padding: 20px;
+        }
+
+        /* Navigation Tabs */
+        .tab-bar {
+            display: flex; gap: 4px; padding: 0 20px; background: var(--bg-panel);
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 14px 22px; background: none; border: none; color: var(--text-secondary);
+            font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 0.85rem;
+            border-bottom: 3px solid transparent; white-space: nowrap;
+        }
+        .tab-btn:hover { color: var(--accent); }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
+
+        /* Tables */
+        .table-responsive { overflow-x: auto; width: 100%; }
+        .cyber-table {
+            width: 100%; border-collapse: collapse; margin-top: 10px; text-align: center;
+        }
+        .cyber-table th {
+            padding: 12px; background: rgba(0, 242, 255, 0.08);
+            color: var(--text-secondary); font-size: 0.65rem; text-transform: uppercase;
+            border-bottom: 1px solid var(--border);
+        }
+        .cyber-table td { 
+            padding: 10px; 
+            border-bottom: 1px solid var(--border-light); 
+            font-family: monospace;
+            color: var(--text-primary);
+        }
+        .atm-highlight { background: rgba(188, 19, 254, 0.15) !important; font-weight: 800; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 16px; border-radius: 8px; border: none; font-weight: 700;
+            cursor: pointer; transition: 0.3s; font-size: 0.75rem;
+        }
+        .btn-buy { background: var(--green); color: #000; }
+        .btn-sell { background: var(--red); color: #fff; }
+        .btn-ghost { background: var(--bg-input); border: 1px solid var(--border); color: var(--text-primary); }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm { padding: 5px 12px; font-size: 0.7rem; }
+
+        /* Form Elements - FIXED FOR BOTH MODES */
+        select, input, .form-control {
+            background: var(--bg-input) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            padding: 8px 12px !important;
+            color: var(--text-primary) !important;
+            font-size: 0.8rem !important;
+            transition: all 0.3s;
+        }
+        select:focus, input:focus {
+            border-color: var(--accent) !important;
+            outline: none;
+        }
+        select option {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 4px; }
+
+        /* Stats */
+        .stat-val { font-size: 1.5rem; font-weight: 800; font-family: monospace; margin: 5px 0; }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+        }
+        
+        /* Strategy Grid */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .strategy-card {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px;
+            border-left: 3px solid var(--green);
+        }
+        .strategy-name { font-weight: 600; margin-bottom: 8px; color: var(--accent); }
+        .strategy-pnl { font-size: 1.1rem; font-weight: 700; margin: 8px 0; }
+        .strategy-stats { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-secondary); }
+        
+        /* Greeks Controls */
+        .greeks-controls { display: flex; gap: 8px; margin: 15px 0; flex-wrap: wrap; }
+        .greeks-btn {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px 16px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+        .greeks-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .greeks-btn.active { background: var(--purple); border-color: var(--purple); color: white; }
+
+        /* Toast */
+        .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; }
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .toast-success { border-left: 3px solid var(--green); color: var(--green); }
+        .toast-error { border-left: 3px solid var(--red); color: var(--red); }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .pos { color: var(--green) !important; }
+        .neg { color: var(--red) !important; }
+        
+        /* Chart Containers */
+        .chart-container { height: 280px; position: relative; margin: 15px 0; }
+        canvas { max-height: 250px; width: 100%; }
+        
+        /* Status Badge */
+        .status-badge { 
+            padding: 4px 12px; 
+            border-radius: 20px; 
+            font-size: 0.65rem; 
+            font-weight: 600;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+        }
+        
+        /* Button Group */
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        
+        /* Paper Mode Toggle Button */
+        .paper-mode-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 30px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .paper-mode-btn:hover { border-color: var(--green); }
+        .paper-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--green);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; padding: 12px; }
+            .header { flex-direction: column; gap: 10px; }
+            .tab-bar { padding: 0 12px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+    <canvas id="three-canvas"></canvas>
+
+    <!-- Header Section -->
+    <header class="header">
+        <div class="logo">
+            <i class="fas fa-wave-square"></i> MATRIX PRO
+        </div>
+        
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+            <!-- Paper Mode Toggle -->
+            <div id="paperToggleBtn" class="paper-mode-btn" onclick="togglePaperMode()">
+                <div class="paper-indicator" id="paperIndicator"></div>
+                <span id="paperModeLabel">PAPER MODE</span>
+            </div>
+            
+            <!-- Market Status -->
+            <div id="marketStatus" class="status-badge" style="border-color: var(--accent);">
+                <i class="fas fa-circle" style="font-size: 8px;"></i> MARKET SCANNING...
+            </div>
+            
+            <!-- Clock -->
+            <div id="clock" style="font-family: monospace; font-weight: bold;">
+                <i class="far fa-clock"></i> 00:00:00
+            </div>
+            
+            <!-- Modern Theme Toggle Switch -->
+            <div class="theme-switch-wrapper">
+                <span class="theme-label">🌙</span>
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggleCheckbox" onchange="toggleTheme()">
+                    <span class="slider"></span>
+                </label>
+                <span class="theme-label">☀️</span>
+            </div>
+
+            <!-- Refresh Button -->
+            <button class="btn btn-ghost btn-sm" onclick="refreshAll()">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Market Ticker -->
+    <div class="ticker-wrap">
+        <div class="ticker-content" id="indexTicker">Establishing secure data uplink with NSE/BSE...</div>
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <main class="dashboard-grid">
+        <!-- Portfolio Card -->
+        <div class="glass-card" style="grid-column: span 3;">
+            <div class="stat-label"><i class="fas fa-chart-line"></i> Total Net Worth</div>
+            <div class="stat-val" id="portfolioBalance">₹0.00</div>
+            <div id="portfolioPnl" class="pos" style="font-weight: bold;">+₹0.00 (0.00%)</div>
+            <div style="margin-top: 15px; font-size: 0.7rem; color: var(--text-secondary);">
+                Active: <span id="activeCount" style="color:var(--text-primary)">0</span> | 
+                WR: <span id="winRate" style="color:var(--green)">0%</span> |
+                Trades: <span id="totalTrades">0</span>
+            </div>
+        </div>
+
+        <!-- Order Entry Card -->
+        <div class="glass-card" style="grid-column: span 6;">
+            <div class="stat-label"><i class="fas fa-bolt"></i> Holographic Order Interface</div>
+            <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
+                <select id="tradeSymbol" style="flex: 2;">
+                    <option value="NIFTY">NIFTY</option>
+                    <option value="BANKNIFTY">BANKNIFTY</option>
+                    <option value="FINNIFTY">FINNIFTY</option>
+                    <option value="SENSEX">SENSEX</option>
+                    <option value="RELIANCE">RELIANCE</option>
+                    <option value="TCS">TCS</option>
+                </select>
+                <input type="number" id="tradeQty" value="10" placeholder="Qty" style="flex: 1;">
+                <input type="number" id="tradePrice" value="0" step="0.05" placeholder="Price" style="flex: 1;">
+                <button class="btn btn-buy" onclick="placeOrder('BUY')"><i class="fas fa-arrow-up"></i> LONG</button>
+                <button class="btn btn-sell" onclick="placeOrder('SELL')"><i class="fas fa-arrow-down"></i> SHORT</button>
+            </div>
+            <div style="margin-top: 12px; display: flex; gap: 10px;">
+                <button class="btn btn-ghost" onclick="closeAllPositions()" style="flex: 1; border-color: var(--red); color: var(--red);">
+                    <i class="fas fa-ban"></i> PANIC EXIT
+                </button>
+                <button class="btn btn-ghost" onclick="syncBrokerOrders()" style="flex: 1;">
+                    <i class="fas fa-university"></i> BROKER SYNC
+                </button>
+            </div>
+        </div>
+
+        <!-- Bot Control Card -->
+        <div class="glass-card" style="grid-column: span 3;">
+            <div class="stat-label"><i class="fas fa-robot"></i> AI Neural Status</div>
+            <div id="botStatusBadge" class="stat-val" style="font-size: 1rem; color: var(--red);">
+                <i class="fas fa-power-off"></i> DISCONNECTED
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button class="btn btn-buy btn-sm" onclick="controlBot('start')" style="flex: 1;">START</button>
+                <button class="btn btn-sell btn-sm" onclick="controlBot('stop')" style="flex: 1;">STOP</button>
+                <button class="btn btn-ghost btn-sm" onclick="controlBot('restart')" style="flex: 1;">RESTART</button>
+            </div>
+        </div>
+
+        <!-- Open Positions Table -->
+        <div class="glass-card" style="grid-column: span 12;">
+            <div class="stat-label"><i class="fas fa-chart-simple"></i> Active Data Streams (Positions)</div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr>
+                            <th>Symbol</th><th>Type</th><th>Qty</th><th>Entry</th><th>LTP</th><th>SL</th><th>Target</th><th>P&L</th><th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positionsTableBody">
+                        <tr><td colspan="9" style="text-align: center;">Scanning data layers for active trades...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Strategy Performance Matrix -->
+        <div class="glass-card" style="grid-column: span 6;">
+            <div class="stat-label"><i class="fas fa-chart-pie"></i> Strategy Performance Matrix</div>
+            <div class="strategy-grid" id="strategyGrid">
+                <div style="text-align: center; padding: 20px;">Loading strategy data...</div>
+            </div>
+        </div>
+        
+        <!-- Neural Equity Curve -->
+        <div class="glass-card" style="grid-column: span 6;">
+            <div class="stat-label"><i class="fas fa-chart-line"></i> Neural Equity Curve</div>
+            <div class="chart-container">
+                <canvas id="equityChartCanvas"></canvas>
+            </div>
+        </div>
+    </main>
+
+    <!-- Navigation Tabs -->
+    <nav class="tab-bar">
+        <button class="tab-btn active" data-tab="optionchain"><i class="fas fa-link"></i> OPTION CHAIN</button>
+        <button class="tab-btn" data-tab="analysis"><i class="fas fa-chart-line"></i> PERFORMANCE</button>
+        <button class="tab-btn" data-tab="paper"><i class="fas fa-file-alt"></i> PAPER SUITE</button>
+        <button class="tab-btn" data-tab="backtest"><i class="fas fa-flask"></i> BACKTEST</button>
+        <button class="tab-btn" data-tab="config"><i class="fas fa-cog"></i> CONFIG</button>
+        <button class="tab-btn" data-tab="logs"><i class="fas fa-terminal"></i> LOGS</button>
+        <button class="tab-btn" data-tab="trades"><i class="fas fa-history"></i> TRADES</button>
+    </nav>
+
+    <!-- TAB: OPTION CHAIN -->
+    <div id="optionchain" class="tab-content active" style="display: block; padding: 20px;">
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <select id="ocSymbol" onchange="loadOptionChain()" style="width: 120px;">
+                        <option value="NIFTY">NIFTY 50</option>
+                        <option value="BANKNIFTY">BANK NIFTY</option>
+                        <option value="FINNIFTY">FIN NIFTY</option>
+                    </select>
+                    <div class="status-badge" id="spotPrice" style="border-color: var(--green);">SPOT: 0.00</div>
+                    <div class="status-badge" id="pcrValue" style="border-color: var(--accent);">PCR: 0.00</div>
+                    <div class="status-badge" id="vixValue" style="border-color: var(--yellow);">VIX: 0.00</div>
+                </div>
+                <div class="stat-label">Greeks Heatmap Engine V3</div>
+            </div>
+            
+            <!-- Greeks Controls -->
+            <div class="greeks-controls">
+                <button class="greeks-btn active" data-metric="delta" onclick="setGreeksMetric('delta')">Delta</button>
+                <button class="greeks-btn" data-metric="gamma" onclick="setGreeksMetric('gamma')">Gamma</button>
+                <button class="greeks-btn" data-metric="theta" onclick="setGreeksMetric('theta')">Theta</button>
+                <button class="greeks-btn" data-metric="vega" onclick="setGreeksMetric('vega')">Vega</button>
+                <button class="greeks-btn" data-metric="iv" onclick="setGreeksMetric('iv')">IV%</button>
+                <button class="greeks-btn" data-metric="oi" onclick="setGreeksMetric('oi')">OI</button>
+            </div>
+            
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr style="background: rgba(0,242,255,0.05);">
+                            <th colspan="9">CALLS (CE)</th>
+                            <th rowspan="2">STRIKE</th>
+                            <th colspan="9">PUTS (PE)</th>
+                           </tr>
+                           <tr>
+                            <th>LTP</th><th>OI</th><th>OI Chg</th><th>IV</th><th>Delta</th><th>Theta</th><th>Gamma</th><th>Vega</th><th>Signal</th>
+                            <th>Signal</th><th>Vega</th><th>Gamma</th><th>Theta</th><th>Delta</th><th>IV</th><th>OI Chg</th><th>OI</th><th>LTP</th>
+                           </tr>
+                    </thead>
+                    <tbody id="optionChainBody">
+                        <tr><td colspan="19" style="text-align: center;">Loading option chain data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PERFORMANCE ANALYSIS -->
+    <div id="analysis" class="tab-content" style="display: none; padding: 20px;">
+        <div class="dashboard-grid" style="padding: 0;">
+            <div class="glass-card" style="grid-column: span 8;">
+                <div class="stat-label">Combined Equity Curve</div>
+                <div class="chart-container">
+                    <canvas id="equityCurveChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-card" style="grid-column: span 4;">
+                <div class="stat-label">Auto vs Manual Breakdown</div>
+                <div style="margin-top: 20px;">
+                    <div class="stat-label">🤖 BOT REVENUE</div>
+                    <div id="autoPnl" class="stat-val pos">₹0.00</div>
+                    <div style="height: 20px;"></div>
+                    <div class="stat-label">✋ MANUAL REVENUE</div>
+                    <div id="manualPnl" class="stat-val neg">₹0.00</div>
+                    <div style="height: 20px;"></div>
+                    <div class="stat-label">📊 OVERALL P&L</div>
+                    <div id="overallPnl" class="stat-val">₹0.00</div>
+                </div>
+            </div>
+        </div>
+        <div class="glass-card" style="margin-top: 15px;">
+            <div class="stat-label">Trade Statistics</div>
+            <div class="dashboard-grid" style="padding: 0; grid-template-columns: repeat(4,1fr);">
+                <div class="stat-card"><div class="stat-label">Total Trades</div><div id="statTotalTrades" class="stat-val">0</div></div>
+                <div class="stat-card"><div class="stat-label">Win Rate</div><div id="statWinRate" class="stat-val pos">0%</div></div>
+                <div class="stat-card"><div class="stat-label">Best Trade</div><div id="statBestTrade" class="stat-val pos">₹0</div></div>
+                <div class="stat-card"><div class="stat-label">Worst Trade</div><div id="statWorstTrade" class="stat-val neg">₹0</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: PAPER SUITE -->
+    <div id="paper" class="tab-content" style="display: none; padding: 20px;">
+        <div class="glass-card">
+            <div class="stat-label"><i class="fas fa-file-alt"></i> Paper Trading Account</div>
+            <div class="dashboard-grid" style="padding: 0; grid-template-columns: repeat(4,1fr); margin-bottom: 20px;">
+                <div class="stat-card"><div class="stat-label">Balance</div><div id="paperBalance" class="stat-val">₹0</div></div>
+                <div class="stat-card"><div class="stat-label">Total P&L</div><div id="paperTotalPnl" class="stat-val">₹0</div></div>
+                <div class="stat-card"><div class="stat-label">Win Rate</div><div id="paperWinRate" class="stat-val">0%</div></div>
+                <div class="stat-card"><div class="stat-label">Active Positions</div><div id="paperActivePositions" class="stat-val">0</div></div>
+            </div>
+            <div class="stat-label">Place Paper Order</div>
+            <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
+                <select id="paperSymbol" style="width: 120px;">
+                    <option value="NIFTY">NIFTY</option>
+                    <option value="BANKNIFTY">BANKNIFTY</option>
+                    <option value="FINNIFTY">FINNIFTY</option>
+                </select>
+                <select id="paperType" style="width: 120px;">
+                    <option value="BUY">BUY (LONG)</option>
+                    <option value="SELL">SELL (SHORT)</option>
+                </select>
+                <input type="number" id="paperQty" value="10" placeholder="Qty" style="width: 80px;">
+                <button class="btn btn-buy" onclick="placePaperOrder()">EXECUTE PAPER ORDER</button>
+                <button class="btn btn-ghost" onclick="resetPaperAccount()" style="border-color: var(--red); color: var(--red);">RESET ACCOUNT</button>
+            </div>
+            <div class="stat-label">Active Paper Positions</div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead><tr><th>Symbol</th><th>Type</th><th>Entry</th><th>Qty</th><th>Current</th><th>P&L</th><th>Action</th></tr></thead>
+                    <tbody id="paperPositionsBody"></tbody>
+                </table>
+            </div>
+            <div class="stat-label" style="margin-top: 20px;">Paper Trade History</div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead><tr><th>Date</th><th>Symbol</th><th>Type</th><th>Entry</th><th>Exit</th><th>P&L</th></tr></thead>
+                    <tbody id="paperHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: BACKTEST -->
+    <div id="backtest" class="tab-content" style="display: none; padding: 20px;">
+        <div class="glass-card">
+            <div class="stat-label"><i class="fas fa-flask"></i> Backtest Engine</div>
+            <div style="display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap;">
+                <select id="backtestSymbol" style="width: 120px;">
+                    <option value="NIFTY">NIFTY</option>
+                    <option value="BANKNIFTY">BANKNIFTY</option>
+                </select>
+                <select id="backtestStrategy" style="width: 180px;">
+                    <option value="EMA_RSI">EMA/RSI Strategy</option>
+                    <option value="MACD_Bollinger">MACD + Bollinger</option>
+                    <option value="RSI_50_Crossover">RSI 50 Crossover</option>
+                    <option value="MA_Crossover_50_200">MA Crossover</option>
+                </select>
+                <input type="date" id="backtestStart" value="2024-01-01">
+                <input type="date" id="backtestEnd" value="2024-12-31">
+                <button class="btn btn-buy" onclick="runBacktest()"><i class="fas fa-play"></i> RUN BACKTEST</button>
+            </div>
+            <div id="backtestResults" style="display: none;">
+                <div class="stat-label">Backtest Results</div>
+                <div class="dashboard-grid" style="padding: 0; grid-template-columns: repeat(4,1fr);" id="backtestMetrics"></div>
+                <div class="table-responsive">
+                    <table class="cyber-table">
+                        <thead><tr><th>Date</th><th>Action</th><th>Entry</th><th>Exit</th><th>P&L</th></tr></thead>
+                        <tbody id="backtestTradesBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: CONFIG -->
+    <div id="config" class="tab-content" style="display: none; padding: 20px;">
+        <div class="glass-card">
+            <div class="stat-label"><i class="fas fa-cog"></i> Uplink Configuration Parameters</div>
+            <div class="dashboard-grid" style="padding: 20px 0;">
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Trading Engine Mode</label>
+                    <select id="cfg_mode" style="width: 100%; margin-top: 8px;">
+                        <option value="BOTH">BOTH (EQUITY + F&O)</option>
+                        <option value="EQUITY_ONLY">EQUITY ONLY</option>
+                        <option value="FNO_ONLY">FNO ONLY</option>
+                    </select>
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Base Capital (₹)</label>
+                    <input type="number" id="cfg_capital" value="100000" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Risk Percentage (%)</label>
+                    <input type="number" id="cfg_risk" value="0.5" step="0.1" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Risk/Reward Ratio</label>
+                    <input type="number" id="cfg_rr" value="3" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Max Orders/Day</label>
+                    <input type="number" id="cfg_max_orders" value="5" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Signal Threshold</label>
+                    <input type="number" id="cfg_signal_threshold" value="10" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">OTM Count</label>
+                    <input type="number" id="cfg_otm" value="1" style="width: 100%; margin-top: 8px;">
+                </div>
+                <div style="grid-column: span 3;">
+                    <label class="stat-label">Paper Trading</label>
+                    <select id="cfg_paper" style="width: 100%; margin-top: 8px;">
+                        <option value="true">Enabled</option>
+                        <option value="false">Disabled</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn btn-buy" onclick="saveAllConfig()"><i class="fas fa-save"></i> SAVE TO CORE MEMORY</button>
+        </div>
+    </div>
+
+    <!-- TAB: LOGS -->
+    <div id="logs" class="tab-content" style="display: none; padding: 20px;">
+        <div class="glass-card">
+            <div class="stat-label"><i class="fas fa-terminal"></i> Neural Core Logs</div>
+            <div id="logWindow" class="log-terminal" style="background: var(--bg-input); border-radius: 8px; padding: 15px; font-family: monospace; font-size: 0.7rem; max-height: 400px; overflow-y: auto;">
+                [SYSTEM] Initializing Matrix Pro neural core...
+                [SYSTEM] Establishing socket connection to NSE servers...
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB: TRADE HISTORY -->
+    <div id="trades" class="tab-content" style="display: none; padding: 20px;">
+        <div class="glass-card">
+            <div class="stat-label"><i class="fas fa-history"></i> Complete Trade History</div>
+            <div class="table-responsive">
+                <table class="cyber-table">
+                    <thead>
+                        <tr><th>ID</th><th>Time</th><th>Symbol</th><th>Type</th><th>Strategy</th><th>Entry</th><th>Exit</th><th>P&L</th><th>Status</th></tr>
+                    </thead>
+                    <tbody id="tradeHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // Global variables
+        let equityChart = null;
+        let equityCurveChart = null;
+        let optionChainData = null;
+        let greeksMetric = 'delta';
+        let allTrades = [];
+        let currentPaperEnabled = true;
+
+        // Theme Management
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const checkbox = document.getElementById('themeToggleCheckbox');
+            if (checkbox) checkbox.checked = savedTheme === 'light';
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            const checkbox = document.getElementById('themeToggleCheckbox');
+            if (checkbox) checkbox.checked = newTheme === 'light';
+        }
+
+        // 3D Background
+        function init3D() {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const geometry = new THREE.TorusGeometry(10, 3, 16, 100);
+            const material = new THREE.MeshBasicMaterial({ color: 0x00f2ff, wireframe: true, transparent: true, opacity: 0.15 });
+            const torus = new THREE.Mesh(geometry, material);
+            scene.add(torus);
+            camera.position.z = 30;
+
+            function animate() {
+                requestAnimationFrame(animate);
+                torus.rotation.x += 0.005;
+                torus.rotation.y += 0.005;
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            particlesJS("particles-js", {
+                particles: { number: { value: 60 }, color: { value: "#00f2ff" }, line_linked: { enable: true, opacity: 0.1 } }
+            });
+        }
+
+        // Data Loading Functions
+        async function refreshAll() {
+            await Promise.all([
+                loadMarketData(),
+                loadPortfolioSummary(),
+                loadPositions(),
+                loadAnalysisData(),
+                loadBotStatus(),
+                loadPaperData(),
+                loadTradeHistory(),
+                loadStrategyPerformance(),
+                loadConfig(),
+                loadNeuralEquityCurve()
+            ]);
+            if (document.getElementById('optionchain').style.display !== 'none') loadOptionChain();
+        }
+
+        async function loadMarketData() {
+            try {
+                const res = await fetch('/api/market');
+                const data = await res.json();
+                document.getElementById('indexTicker').innerHTML = Object.entries(data).map(([n, i]) => `
+                    <span style="margin-right: 40px;">
+                        <b style="color:var(--accent)">${n}</b>: ₹${i.ltp.toLocaleString()} 
+                        <span class="${i.change_percent >= 0 ? 'pos' : 'neg'}">${i.change_percent.toFixed(2)}%</span>
+                    </span>
+                `).join('');
+                
+                const isOpen = (new Date().getHours() >= 9 && new Date().getHours() < 15);
+                const status = document.getElementById('marketStatus');
+                status.innerHTML = isOpen ? '<i class="fas fa-circle" style="font-size: 8px;"></i> MARKET LIVE' : '<i class="fas fa-circle" style="font-size: 8px;"></i> MARKET CLOSED';
+                status.style.borderColor = isOpen ? 'var(--green)' : 'var(--red)';
+            } catch(e) { console.warn("Market Fetch Error"); }
+        }
+
+        async function loadPortfolioSummary() {
+            try {
+                const res = await fetch('/api/paper/summary');
+                const data = await res.json();
+                new countUp.CountUp('portfolioBalance', data.current_balance || 0, { prefix: '₹' }).start();
+                const totalPnl = data.total_pnl || 0;
+                document.getElementById('portfolioPnl').innerHTML = `${totalPnl >= 0 ? '+' : ''}₹${totalPnl.toLocaleString()} (${(data.win_rate || 0).toFixed(2)}%)`;
+                document.getElementById('winRate').innerText = (data.win_rate || 0).toFixed(1) + '%';
+                document.getElementById('activeCount').innerText = data.active_positions || 0;
+                document.getElementById('totalTrades').innerText = data.total_trades || 0;
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadPositions() {
+            try {
+                const res = await fetch('/api/paper/positions');
+                const pos = await res.json();
+                const tbody = document.getElementById('positionsTableBody');
+                if (!pos || pos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No active neural streams found.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = pos.map(p => `
+                    <tr>
+                        <td><b>${p.symbol}</b></td>
+                        <td class="${p.position_type === 'LONG' ? 'pos' : 'neg'}">${p.position_type}</span></td>
+                        <td>${p.quantity}</span></td>
+                        <td>₹${p.entry_price.toFixed(2)}</span></td>
+                        <td>₹${(p.current_price || p.entry_price).toFixed(2)}</span></td>
+                        <td>₹${(p.stop_loss || 0).toFixed(2)}</span></td>
+                        <td>₹${(p.target || 0).toFixed(2)}</span></td>
+                        <td class="${p.pnl >= 0 ? 'pos' : 'neg'}">₹${p.pnl.toFixed(2)}</span></td>
+                        <td><button class="btn btn-sell btn-sm" onclick="closePaperPosition('${p.symbol}')">EXIT</button></td>
+                    </tr>
+                `).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadAnalysisData() {
+            try {
+                const res = await fetch('/api/trades/combined');
+                const data = await res.json();
+                if(data.status === 'success') {
+                    document.getElementById('autoPnl').innerHTML = '₹' + (data.auto_stats?.total_pnl || 0).toFixed(2);
+                    document.getElementById('manualPnl').innerHTML = '₹' + (data.manual_stats?.total_pnl || 0).toFixed(2);
+                    document.getElementById('overallPnl').innerHTML = '₹' + (data.overall_stats?.total_pnl || 0).toFixed(2);
+                    document.getElementById('statTotalTrades').innerHTML = data.overall_stats?.total_trades || 0;
+                    document.getElementById('statWinRate').innerHTML = (data.overall_stats?.win_rate || 0).toFixed(1) + '%';
+                    initCombinedEquityCurve(data.all_trades);
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadStrategyPerformance() {
+            try {
+                const res = await fetch('/api/trades/combined');
+                const data = await res.json();
+                if (data.strategy_performance && data.strategy_performance.length > 0) {
+                    document.getElementById('strategyGrid').innerHTML = data.strategy_performance.map(s => `
+                        <div class="strategy-card">
+                            <div class="strategy-name">${s.strategy}</div>
+                            <div class="strategy-pnl ${s.total_pnl >= 0 ? 'pos' : 'neg'}">${formatCurrency(s.total_pnl)}</div>
+                            <div class="strategy-stats">
+                                <span><i class="fas fa-chart-line"></i> ${s.trades}</span>
+                                <span><i class="fas fa-percent"></i> ${s.win_rate}%</span>
+                                <span><i class="fas fa-tag"></i> ${s.type}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadNeuralEquityCurve() {
+            try {
+                const res = await fetch('/api/trades');
+                const trades = await res.json();
+                const closedTrades = trades.filter(t => t.status === 'closed');
+                let cumulative = 100000;
+                const equityData = [];
+                const labels = [];
+                
+                closedTrades.forEach((t, idx) => {
+                    cumulative += (t.pnl || 0);
+                    equityData.push(cumulative);
+                    labels.push(idx + 1);
+                });
+                
+                const ctx = document.getElementById('equityChartCanvas')?.getContext('2d');
+                if (ctx) {
+                    if (equityChart) equityChart.destroy();
+                    equityChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels.length ? labels : ['Start'],
+                            datasets: [{
+                                label: 'Portfolio Value (₹)',
+                                data: equityData.length ? equityData : [100000],
+                                borderColor: '#00f2ff',
+                                backgroundColor: 'rgba(0, 242, 255, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: { legend: { labels: { color: '#e8ecf2' } } },
+                            scales: { y: { ticks: { callback: v => '₹' + v.toLocaleString() } } }
+                        }
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function initCombinedEquityCurve(trades) {
+            const ctx = document.getElementById('equityCurveChart')?.getContext('2d');
+            if (!ctx) return;
+            
+            let balance = 100000;
+            const dataPoints = [];
+            const labels = [];
+            
+            if (trades && trades.length > 0) {
+                const closedTrades = trades.filter(t => t.status === 'closed');
+                closedTrades.forEach((t, idx) => {
+                    balance += (t.pnl || 0);
+                    dataPoints.push(balance);
+                    labels.push(idx + 1);
+                });
+            }
+            
+            if (equityCurveChart) equityCurveChart.destroy();
+            equityCurveChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.length ? labels : ['Start'],
+                    datasets: [{
+                        label: 'Portfolio Equity (₹)',
+                        data: dataPoints.length ? dataPoints : [100000],
+                        borderColor: '#00f2ff',
+                        backgroundColor: 'rgba(0,242,255,0.1)',
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: '#e8ecf2' } } },
+                    scales: { y: { ticks: { callback: v => '₹' + v.toLocaleString() } } }
+                }
+            });
+        }
+
+        async function loadTradeHistory() {
+            try {
+                const res = await fetch('/api/trades/combined');
+                const data = await res.json();
+                if (data.status === 'success') {
+                    allTrades = data.all_trades || [];
+                    const tbody = document.getElementById('tradeHistoryBody');
+                    if (allTrades.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No trade history found</tbody>';
+                        return;
+                    }
+                    tbody.innerHTML = allTrades.slice(0, 50).map(t => `
+                        <tr>
+                            <td>${t.id || '-'}</td>
+                            <td>${t.entry_time?.slice(5, 16) || '-'}</td>
+                            <td><strong>${t.symbol}</strong></td>
+                            <td class="${t.position_type === 'LONG' ? 'pos' : 'neg'}">${t.position_type || '-'}</span></td>
+                            <td><span class="status-badge">${t.strategy || '-'}</span></td>
+                            <td>₹${(t.entry_price || 0).toFixed(2)}</span></td>
+                            <td>₹${(t.exit_price || 0).toFixed(2)}</span></td>
+                            <td class="${(t.pnl || 0) >= 0 ? 'pos' : 'neg'}">${formatCurrency(t.pnl || 0)}</span></td>
+                            <td><span class="status-badge ${t.status === 'open' ? 'pos' : 'neg'}">${t.status || 'closed'}</span></td>
+                        </tr>
+                    `).join('');
+                    
+                    const pnls = allTrades.filter(t => t.status === 'closed').map(t => t.pnl || 0);
+                    if (pnls.length) {
+                        document.getElementById('statBestTrade').innerHTML = formatCurrency(Math.max(...pnls));
+                        document.getElementById('statWorstTrade').innerHTML = formatCurrency(Math.min(...pnls));
+                    }
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadOptionChain() {
+            const sym = document.getElementById('ocSymbol').value;
+            try {
+                const res = await fetch(`/api/option-chain?underlying=${sym}&expiry=0&num_strikes=12`);
+                const data = await res.json();
+                if(data.success) {
+                    optionChainData = data;
+                    document.getElementById('spotPrice').innerHTML = `<i class="fas fa-chart-line"></i> SPOT: ₹${data.spot_price}`;
+                    document.getElementById('pcrValue').innerHTML = `<i class="fas fa-chart-pie"></i> PCR: ${data.pcr}`;
+                    document.getElementById('vixValue').innerHTML = `<i class="fas fa-waveform"></i> VIX: ${data.vix}`;
+                    
+                    const tbody = document.getElementById('optionChainBody');
+                    if (!data.strikes || data.strikes.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="19" style="text-align: center;">No option chain data available</tbody>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = data.strikes.map(s => `
+                        <tr class="${s.strike === data.atm_strike ? 'atm-highlight' : ''}">
+                            <td style="color:var(--green)">₹${s.ce.ltp}</span></td>
+                            <td>${formatOI(s.ce.oi)}</span></td>
+                            <td class="${s.ce.oi_change >= 0 ? 'pos' : 'neg'}">${s.ce.oi_change > 0 ? '+' : ''}${formatOI(s.ce.oi_change)}</span></td>
+                            <td>${s.ce.iv}%</span></td>
+                            <td class="pos">${s.ce.delta.toFixed(2)}</span></td>
+                            <td class="neg">${s.ce.theta.toFixed(2)}</span></td>
+                            <td>${s.ce.gamma.toFixed(4)}</span></td>
+                            <td>${s.ce.vega.toFixed(2)}</span></td>
+                            <td class="${s.ce.signal?.includes('BULLISH') ? 'pos' : (s.ce.signal?.includes('BEARISH') ? 'neg' : '')}">${s.ce.signal || 'NEUTRAL'}</span></td>
+                            <td style="background: rgba(0,242,255,0.05); font-weight: bold;">${s.strike}</span></td>
+                            <td class="${s.pe.signal?.includes('BULLISH') ? 'pos' : (s.pe.signal?.includes('BEARISH') ? 'neg' : '')}">${s.pe.signal || 'NEUTRAL'}</span></td>
+                            <td>${s.pe.vega.toFixed(2)}</span></td>
+                            <td>${s.pe.gamma.toFixed(4)}</span></td>
+                            <td class="neg">${s.pe.theta.toFixed(2)}</span></td>
+                            <td class="neg">${s.pe.delta.toFixed(2)}</span></td>
+                            <td>${s.pe.iv}%</span></td>
+                            <td class="${s.pe.oi_change >= 0 ? 'pos' : 'neg'}">${s.pe.oi_change > 0 ? '+' : ''}${formatOI(s.pe.oi_change)}</span></td>
+                            <td>${formatOI(s.pe.oi)}</span></td>
+                            <td style="color:var(--red)">₹${s.pe.ltp}</span></td>
+                        </tr>
+                    `).join('');
+                    applyGreeksHeatmap();
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function applyGreeksHeatmap() {
+            if (!optionChainData || !optionChainData.strikes) return;
+            const strikes = optionChainData.strikes;
+            const rows = document.querySelectorAll('#optionChainBody tr');
+            const metric = greeksMetric;
+            let maxVal = Math.max(1, ...strikes.flatMap(s => [Math.abs(s.ce[metric] || 0), Math.abs(s.pe[metric] || 0)]));
+            
+            rows.forEach((row, idx) => {
+                if (idx >= strikes.length) return;
+                const s = strikes[idx];
+                const ceVal = s.ce[metric] || 0;
+                const peVal = s.pe[metric] || 0;
+                const ceIntensity = Math.min(0.8, Math.abs(ceVal) / maxVal);
+                const peIntensity = Math.min(0.8, Math.abs(peVal) / maxVal);
+                const ceColor = ceVal >= 0 ? `rgba(0,200,100,${0.3 + ceIntensity * 0.5})` : `rgba(200,50,50,${0.3 + ceIntensity * 0.5})`;
+                const peColor = peVal >= 0 ? `rgba(0,200,100,${0.3 + peIntensity * 0.5})` : `rgba(200,50,50,${0.3 + peIntensity * 0.5})`;
+                
+                const cells = row.cells;
+                if (cells.length >= 19) {
+                    if (metric === 'delta') { cells[4].style.background = ceColor; cells[13].style.background = peColor; }
+                    if (metric === 'theta') { cells[5].style.background = ceColor; cells[12].style.background = peColor; }
+                    if (metric === 'gamma') { cells[6].style.background = ceColor; cells[11].style.background = peColor; }
+                    if (metric === 'vega') { cells[7].style.background = ceColor; cells[10].style.background = peColor; }
+                    if (metric === 'iv') { cells[3].style.background = ceColor; cells[14].style.background = peColor; }
+                    if (metric === 'oi') { cells[1].style.background = ceColor; cells[16].style.background = peColor; }
+                }
+            });
+        }
+
+        function setGreeksMetric(metric) {
+            greeksMetric = metric;
+            document.querySelectorAll('.greeks-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.greeks-btn[data-metric="${metric}"]`).classList.add('active');
+            applyGreeksHeatmap();
+        }
+
+        async function loadPaperData() {
+            try {
+                const summary = await (await fetch('/api/paper/summary')).json();
+                document.getElementById('paperBalance').innerHTML = `₹${(summary.current_balance || 0).toLocaleString()}`;
+                document.getElementById('paperTotalPnl').innerHTML = `₹${(summary.total_pnl || 0).toLocaleString()}`;
+                document.getElementById('paperWinRate').innerHTML = `${(summary.win_rate || 0).toFixed(1)}%`;
+                document.getElementById('paperActivePositions').innerHTML = summary.active_positions || 0;
+                
+                const positions = await (await fetch('/api/paper/positions')).json();
+                const posBody = document.getElementById('paperPositionsBody');
+                if (!positions || positions.length === 0) {
+                    posBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No active paper positions</tbody>';
+                } else {
+                    posBody.innerHTML = positions.map(p => `
+                        <tr>
+                            <td><strong>${p.symbol}</strong></td>
+                            <td class="${p.position_type === 'LONG' ? 'pos' : 'neg'}">${p.position_type}</span></td>
+                            <td>₹${p.entry_price.toFixed(2)}</span></td>
+                            <td>${p.quantity}</span></td>
+                            <td>₹${(p.current_price || p.entry_price).toFixed(2)}</span></td>
+                            <td class="${p.pnl >= 0 ? 'pos' : 'neg'}">${formatCurrency(p.pnl)}</span></td>
+                            <td><button class="btn btn-sell btn-sm" onclick="closePaperPosition('${p.symbol}')">Close</button></td>
+                        </tr>
+                    `).join('');
+                }
+                
+                const history = await (await fetch('/api/paper/history')).json();
+                const histBody = document.getElementById('paperHistoryBody');
+                if (!history || history.length === 0) {
+                    histBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No trade history</tbody>';
+                } else {
+                    histBody.innerHTML = history.slice(0, 30).map(h => `
+                        <tr>
+                            <td>${h.entry_time?.slice(0, 10) || '-'}</td>
+                            <td>${h.symbol}</span></td>
+                            <td class="${h.position_type === 'LONG' ? 'pos' : 'neg'}">${h.position_type}</span></td>
+                            <td>₹${h.entry_price.toFixed(2)}</span></td>
+                            <td>₹${h.exit_price?.toFixed(2) || '-'}</span></td>
+                            <td class="${(h.pnl || 0) >= 0 ? 'pos' : 'neg'}">${formatCurrency(h.pnl || 0)}</span></td>
+                        </tr>
+                    `).join('');
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        async function placePaperOrder() {
+            const symbol = document.getElementById('paperSymbol').value;
+            const type = document.getElementById('paperType').value;
+            const qty = parseInt(document.getElementById('paperQty').value);
+            if (!symbol || qty <= 0) { showToast('Invalid symbol or quantity', true); return; }
+            showToast(`Placing paper order...`, 'info');
+            try {
+                const res = await fetch('/api/paper/place', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, type, quantity: qty, price: 0 }) });
+                const data = await res.json();
+                showToast(data.message, !data.success);
+                if (data.success) { loadPaperData(); loadPositions(); loadPortfolioSummary(); }
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function closePaperPosition(symbol) {
+            if (!confirm(`Close paper position ${symbol}?`)) return;
+            try {
+                const res = await fetch('/api/paper/close', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol }) });
+                const data = await res.json();
+                showToast(data.message);
+                loadPaperData();
+                loadPositions();
+                loadPortfolioSummary();
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function resetPaperAccount() {
+            if (!confirm('Reset paper trading account?')) return;
+            try {
+                const res = await fetch('/api/paper/reset', { method: 'POST' });
+                const data = await res.json();
+                showToast(data.message);
+                loadPaperData();
+                loadPositions();
+                loadPortfolioSummary();
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function togglePaperMode() {
+            const newState = !currentPaperEnabled;
+            try {
+                const res = await fetch('/api/paper/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: newState }) });
+                const data = await res.json();
+                if (data.success) {
+                    currentPaperEnabled = newState;
+                    const label = document.getElementById('paperModeLabel');
+                    const indicator = document.getElementById('paperIndicator');
+                    if (currentPaperEnabled) {
+                        label.innerHTML = 'PAPER MODE';
+                        indicator.style.background = 'var(--green)';
+                        showToast('Paper trading ENABLED', false);
+                    } else {
+                        label.innerHTML = 'LIVE MODE';
+                        indicator.style.background = 'var(--red)';
+                        showToast('LIVE trading ENABLED - Real money!', 'warning');
+                    }
+                    refreshAll();
+                }
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function runBacktest() {
+            const symbol = document.getElementById('backtestSymbol').value;
+            const strategy = document.getElementById('backtestStrategy').value;
+            const startDate = document.getElementById('backtestStart').value;
+            const endDate = document.getElementById('backtestEnd').value;
+            showToast('Running backtest...', 'info');
+            try {
+                const res = await fetch('/api/backtest/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, strategy, startDate, endDate }) });
+                const data = await res.json();
+                if (data.success && data.results) {
+                    const m = data.results.metrics;
+                    document.getElementById('backtestResults').style.display = 'block';
+                    document.getElementById('backtestMetrics').innerHTML = `
+                        <div class="stat-card"><div class="stat-label">Trades</div><div class="stat-val">${m.total_trades || 0}</div></div>
+                        <div class="stat-card"><div class="stat-label">Win Rate</div><div class="stat-val ${(m.win_rate || 0) >= 50 ? 'pos' : 'neg'}">${(m.win_rate || 0).toFixed(1)}%</div></div>
+                        <div class="stat-card"><div class="stat-label">Total P&L</div><div class="stat-val ${(m.total_pnl || 0) >= 0 ? 'pos' : 'neg'}">${formatCurrency(m.total_pnl || 0)}</div></div>
+                        <div class="stat-card"><div class="stat-label">Return</div><div class="stat-val ${(m.total_return || 0) >= 0 ? 'pos' : 'neg'}">${(m.total_return || 0).toFixed(2)}%</div></div>
+                    `;
+                    const trades = data.results.trades || [];
+                    document.getElementById('backtestTradesBody').innerHTML = trades.slice(0, 30).map(t => `
+                        <tr>
+                            <td>${t.entry_time || '-'}</td>
+                            <td class="${t.action === 'LONG' ? 'pos' : 'neg'}">${t.action}</span></td>
+                            <td>₹${(t.entry_price || 0).toFixed(2)}</span></td>
+                            <td>₹${(t.exit_price || 0).toFixed(2)}</span></td>
+                            <td class="${(t.pnl || 0) >= 0 ? 'pos' : 'neg'}">${formatCurrency(t.pnl || 0)}</span></td>
+                        </tr>
+                    `).join('');
+                    showToast('Backtest completed!', 'success');
+                }
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function loadConfig() {
+            try {
+                const res = await fetch('/api/config/get');
+                const c = await res.json();
+                document.getElementById('cfg_mode').value = c.TRADING_MODE || 'BOTH';
+                document.getElementById('cfg_capital').value = c.BASE_CAPITAL || 100000;
+                document.getElementById('cfg_risk').value = (c.BASE_CAPITAL_RISK_PERCENT || 0.005) * 100;
+                document.getElementById('cfg_rr').value = c.RISK_REWARD_RATIO || 3;
+                document.getElementById('cfg_max_orders').value = c.MAX_ORDERS_PER_DAY || 5;
+                document.getElementById('cfg_signal_threshold').value = c.MIN_SIGNAL_STRENGTH || 10;
+                document.getElementById('cfg_otm').value = c.OTM_COUNT || 1;
+                document.getElementById('cfg_paper').value = c.PAPER_TRADING_ENABLED ? 'true' : 'false';
+            } catch(e) { console.error(e); }
+        }
+
+        async function saveAllConfig() {
+            const config = {
+                TRADING_MODE: document.getElementById('cfg_mode').value,
+                BASE_CAPITAL: parseFloat(document.getElementById('cfg_capital').value),
+                BASE_CAPITAL_RISK_PERCENT: parseFloat(document.getElementById('cfg_risk').value) / 100,
+                RISK_REWARD_RATIO: parseFloat(document.getElementById('cfg_rr').value),
+                MAX_ORDERS_PER_DAY: parseInt(document.getElementById('cfg_max_orders').value),
+                MIN_SIGNAL_STRENGTH: parseInt(document.getElementById('cfg_signal_threshold').value),
+                OTM_COUNT: parseInt(document.getElementById('cfg_otm').value),
+                PAPER_TRADING_ENABLED: document.getElementById('cfg_paper').value === 'true'
+            };
+            try {
+                const res = await fetch('/api/config/save', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
+                const data = await res.json();
+                showToast(data.message, !data.success);
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function controlBot(action) {
+            try {
+                const res = await fetch(`/api/bot/${action}`, { method: 'POST' });
+                const data = await res.json();
+                showToast(`NEURAL CORE: ${data.message.toUpperCase()}`);
+                loadBotStatus();
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadBotStatus() {
+            try {
+                const res = await fetch('/api/bot/status');
+                const data = await res.json();
+                const badge = document.getElementById('botStatusBadge');
+                if (data.running) {
+                    badge.innerHTML = '<i class="fas fa-circle" style="font-size: 8px;"></i> CORE INITIALIZED';
+                    badge.style.color = 'var(--green)';
+                } else {
+                    badge.innerHTML = '<i class="fas fa-power-off"></i> CORE TERMINATED';
+                    badge.style.color = 'var(--red)';
+                }
+                loadLogs();
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadLogs() {
+            try {
+                const res = await fetch('/api/bot/logs');
+                const data = await res.json();
+                const logWin = document.getElementById('logWindow');
+                logWin.innerHTML = (data.logs || ['No logs available']).slice(-50).map(l => `<div style="padding: 4px 0;">${escapeHtml(l)}</div>`).join('');
+                logWin.scrollTop = logWin.scrollHeight;
+            } catch(e) { console.error(e); }
+        }
+
+        async function placeOrder(type) {
+            const symbol = document.getElementById('tradeSymbol').value;
+            const qty = parseInt(document.getElementById('tradeQty').value);
+            const price = parseFloat(document.getElementById('tradePrice').value) || 0;
+            if (!symbol || qty <= 0) { showToast('Invalid symbol or quantity', true); return; }
+            showToast(`Placing ${type} order...`, 'info');
+            try {
+                const res = await fetch('/api/place-order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ symbol, type, quantity: qty, price }) });
+                const data = await res.json();
+                showToast(data.message, !data.success);
+                if (data.success) refreshAll();
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function closeAllPositions() {
+            if (!confirm('Close ALL positions?')) return;
+            try {
+                const res = await fetch('/api/close-all', { method: 'POST' });
+                const data = await res.json();
+                showToast(`Closed ${data.closed} positions`);
+                refreshAll();
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        async function syncBrokerOrders() {
+            showToast('Syncing broker orders...', 'info');
+            try {
+                const res = await fetch('/api/sync/orders');
+                const data = await res.json();
+                showToast(`Synced ${data.synced} orders`, data.status === 'success' ? false : true);
+                refreshAll();
+            } catch(e) { showToast(e.message, true); }
+        }
+
+        function formatCurrency(n) { return n >= 0 ? `₹${n.toFixed(2)}` : `-₹${Math.abs(n).toFixed(2)}`; }
+        function formatOI(n) { n = Math.abs(n || 0); if (n >= 1e7) return (n/1e7).toFixed(2)+'Cr'; if (n >= 1e5) return (n/1e5).toFixed(1)+'L'; if (n >= 1e3) return (n/1e3).toFixed(1)+'K'; return n.toString(); }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+        function showToast(msg, isError = false) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${isError ? 'toast-error' : 'toast-success'}`;
+            toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Tab Switching
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+                btn.classList.add('active');
+                const activeTab = document.getElementById(tabId);
+                if (activeTab) activeTab.style.display = 'block';
+                if (tabId === 'optionchain') loadOptionChain();
+                if (tabId === 'analysis') loadAnalysisData();
+                if (tabId === 'paper') loadPaperData();
+                if (tabId === 'trades') loadTradeHistory();
+                if (tabId === 'logs') loadLogs();
+            });
+        });
+
+        // Initialize
+        window.onload = () => {
+            initTheme();
+            init3D();
+            refreshAll();
+            setInterval(refreshAll, 30000);
+            setInterval(() => { if (document.getElementById('optionchain').style.display !== 'none') loadOptionChain(); }, 15000);
+        };
+    </script>
+</body>
+</html>
